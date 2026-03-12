@@ -59,6 +59,7 @@ const LocationCalendar = () => {
                 onPreviousMonth={handlePrevious}
                 onNextMonth={handleNext}
                 onToday={handleToday}
+                onClear={handleClear}
                 viewType="month"
               />
               <CalendarGrid
