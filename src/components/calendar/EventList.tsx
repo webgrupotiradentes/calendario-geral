@@ -24,11 +24,17 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
 
   const filteredEvents = events.filter(event => {
     const matchesCat = activeCategories.length === 0 || activeCategories.includes(event.categoryId);
+    
     if (selectedDate) {
       const sel = formatDateString(selectedDate);
       return matchesCat && sel >= event.date && sel <= (event.endDate || event.date);
     }
-    return matchesCat;
+    
+    // When showing "Próximos Eventos", only show from today onwards
+    const today = formatDateString(new Date());
+    const isUpcoming = (event.endDate || event.date) >= today;
+    
+    return matchesCat && isUpcoming;
   });
 
   const sortedEvents = [...filteredEvents].sort(
