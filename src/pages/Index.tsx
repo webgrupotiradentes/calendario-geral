@@ -118,12 +118,12 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6 lg:py-8">
         {/* ── Page title row ──────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 animate-fade-in">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              Calendário Acadêmico
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              <span className="gradient-text">Calendário Acadêmico</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1.5">
               Acompanhe todas as datas importantes do ano letivo
             </p>
           </div>
