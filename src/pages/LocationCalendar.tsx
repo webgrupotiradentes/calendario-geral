@@ -68,6 +68,7 @@ const LocationCalendar = () => {
                 categories={categories}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
+                onEventClick={setSelectedEvent}
                 activeCategories={[]}
               />
             </div>
