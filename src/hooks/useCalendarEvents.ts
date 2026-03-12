@@ -48,8 +48,38 @@ export function useCalendarEvents() {
   }, []);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    let isMounted = true;
+
+    const fetchEventsWithGuard = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('events')
+        .select('*, macros (name), micros (name)')
+        .order('date', { ascending: true });
+
+      if (isMounted) {
+        if (error) {
+          console.error('Error fetching events:', error);
+        } else {
+          setEvents((data || []).map(dbToEvent));
+        }
+        setIsLoading(false);
+      }
+    };
+
+    fetchEventsWithGuard();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        fetchEventsWithGuard();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const addEvent = useCallback(async (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
     const { data: userData } = await supabase.auth.getUser();

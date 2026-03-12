@@ -33,6 +33,16 @@ export function useMicros() {
 
     useEffect(() => {
         fetchMicros();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+                fetchMicros();
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, [fetchMicros]);
 
     const addMicro = useCallback(async (micro: Omit<Micro, 'id' | 'createdAt' | 'updatedAt'>) => {

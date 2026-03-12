@@ -16,7 +16,7 @@ export function useLogs() {
     const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchLogs = useCallback(async () => {
+    const fetchLogs = useCallback(async (isMounted: boolean = true) => {
         setIsLoading(true);
         try {
             const { data: logsData, error: logsError } = await supabase
@@ -36,32 +36,37 @@ export function useLogs() {
                 .order('created_at', { ascending: false })
                 .limit(100);
 
-            if (logsError) {
-                console.error('Error fetching logs:', logsError);
-            } else {
-                setLogs((logsData || []).map((row: any) => ({
-                    id: row.id,
-                    userId: row.user_id,
-                    action: row.action,
-                    entityType: row.entity_type,
-                    entityName: row.entity_name,
-                    createdAt: row.created_at,
-                    userEmail: row.profiles?.email,
-                    userFullName: row.profiles?.full_name,
-                })));
+            if (isMounted) {
+                if (logsError) {
+                    console.error('Error fetching logs:', logsError);
+                } else {
+                    setLogs((logsData || []).map((row: any) => ({
+                        id: row.id,
+                        userId: row.user_id,
+                        action: row.action,
+                        entityType: row.entity_type,
+                        entityName: row.entity_name,
+                        createdAt: row.created_at,
+                        userEmail: row.profiles?.email,
+                        userFullName: row.profiles?.full_name,
+                    })));
+                }
             }
         } catch (error) {
-            console.error('Unexpected error fetching logs:', error);
+            if (isMounted) {
+                console.error('Unexpected error fetching logs:', error);
+            }
         } finally {
-            setIsLoading(false);
+            if (isMounted) {
+                setIsLoading(false);
+            }
         }
     }, []);
 
     const addLog = useCallback(async (action: string, entityType: string, entityName?: string) => {
-        // This is still here for backward compatibility but triggers will handle most cases
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user) return; // Don't log anonymous actions if not needed
+        if (!user) return;
 
         const { error } = await supabase
             .from('activity_logs')
@@ -80,9 +85,9 @@ export function useLogs() {
     }, [fetchLogs]);
 
     useEffect(() => {
-        fetchLogs();
+        let isMounted = true;
+        fetchLogs(isMounted);
 
-        // Subscribe to real-time changes
         const channel = supabase
             .channel('activity_logs_changes')
             .on(
@@ -93,13 +98,21 @@ export function useLogs() {
                     table: 'activity_logs'
                 },
                 () => {
-                    fetchLogs();
+                    fetchLogs(isMounted);
                 }
             )
             .subscribe();
 
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+                fetchLogs(isMounted);
+            }
+        });
+
         return () => {
+            isMounted = false;
             supabase.removeChannel(channel);
+            subscription.unsubscribe();
         };
     }, [fetchLogs]);
 
