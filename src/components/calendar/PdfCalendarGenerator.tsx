@@ -96,35 +96,31 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
       // ─── White background ───
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageW, pageH, 'F');
-
-      // ─── Title ───
-      const titleH = 16;
-      doc.setFillColor(...NAVY);
-      doc.rect(0, 0, pageW, titleH, 'F');
-
-      let title = `CALENDÁRIO DE PROCESSOS SELETIVOS ${currentYear}`;
+      // ─── Header ───
+      const titleH = 25;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(...NAVY);
+      
+      let title = `CALENDÁRIO ${currentYear}`;
       if (selectedCategoryIds.length === 1) {
         const cat = categories.find(c => c.id === selectedCategoryIds[0]);
         if (cat) title = `CALENDÁRIO ${cat.name.toUpperCase()} ${currentYear}`;
       } else if (selectedCategoryIds.length > 1) {
         title = `CALENDÁRIO ${currentYear} — CATEGORIAS SELECIONADAS`;
       }
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(255, 255, 255);
-      doc.text(title, margin, 10.5);
+      
+      doc.text(title, margin, 18);
 
       // ─── Calendar grid: 4 cols × 3 rows ───
       const cols = 4;
       const rows = 3;
-      const gapX = 3.5;
-      const gapY = 3.5;
-      const calTop = titleH + 4;
+      const gapX = 4.5;
+      const gapY = 4.5;
+      const calTop = titleH;
 
-      // Reserve ~42% of the page for the bottom events panel
-      const panelH = Math.min(175, pageH * 0.42);
-      const calAreaH = pageH - calTop - panelH - 6;
+      const panelH = pageH * 0.38; // Slightly smaller panel
+      const calAreaH = pageH - calTop - panelH - 10;
       const cellW = (pageW - margin * 2 - gapX * (cols - 1)) / cols;
       const cellH = (calAreaH - gapY * (rows - 1)) / rows;
 
@@ -134,83 +130,95 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
         const x = margin + col * (cellW + gapX);
         const y = calTop + row * (cellH + gapY);
 
-        // Month cell: light border + white bg
-        doc.setFillColor(250, 251, 253);
-        doc.setDrawColor(210, 215, 225);
-        doc.setLineWidth(0.2);
-        doc.roundedRect(x, y, cellW, cellH, 1.2, 1.2, 'FD');
+        // Month container
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(230, 235, 245);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(x, y, cellW, cellH, 1.5, 1.5, 'FD');
 
-        // Month name header (navy strip)
-        doc.setFillColor(...NAVY);
-        doc.roundedRect(x, y, cellW, 6.5, 1.2, 1.2, 'F');
-        // Fix bottom corners
-        doc.rect(x, y + 3.5, cellW, 3, 'F');
-
+        // Month Name
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(6.5);
-        doc.setTextColor(255, 255, 255);
-        doc.text(MONTH_NAMES_PT[monthIdx], x + cellW / 2, y + 4.4, { align: 'center' });
+        doc.setFontSize(8);
+        doc.setTextColor(...NAVY);
+        doc.text(MONTH_NAMES_PT[monthIdx], x + 5, y + 8);
 
-        // Day column headers
-        const dayW = (cellW - 4) / 7;
-        const dayHeaderY = y + 10;
+        // Day Headers
+        const dayW = (cellW - 6) / 7;
+        const dayHeaderY = y + 14;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(4.2);
-        doc.setTextColor(100, 110, 130);
+        doc.setFontSize(5);
+        doc.setTextColor(140, 150, 170);
         for (let d = 0; d < 7; d++) {
-          doc.text(DAY_HEADERS[d], x + 2 + d * dayW + dayW / 2, dayHeaderY, { align: 'center' });
+          doc.text(DAY_HEADERS[d], x + 3 + d * dayW + dayW / 2, dayHeaderY, { align: 'center' });
         }
 
-        // Separator line
-        doc.setDrawColor(215, 220, 230);
-        doc.setLineWidth(0.15);
-        doc.line(x + 1.5, dayHeaderY + 1.2, x + cellW - 1.5, dayHeaderY + 1.2);
-
-        // Day cells
-        const firstDay = new Date(currentYear, monthIdx, 1);
+        // Days
+          const firstDay = new Date(currentYear, monthIdx, 1);
         const startDow = firstDay.getDay();
         const daysInMonth = new Date(currentYear, monthIdx + 1, 0).getDate();
-        const dayCellH = (cellH - 15.5) / 6;
-        const dayCellY = dayHeaderY + 2.5;
+        const dayCellH = (cellH - 20) / 6;
+        const dayCellY = dayHeaderY + 5;
 
         for (let day = 1; day <= daysInMonth; day++) {
           const dow = (startDow + day - 1) % 7;
           const week = Math.floor((startDow + day - 1) / 7);
-          const dx = x + 2 + dow * dayW;
+          const dx = x + 3 + dow * dayW;
           const dy = dayCellY + week * dayCellH;
-          const sz = Math.min(dayW - 0.5, dayCellH - 0.3);
+          
+          // Much smaller and softer badge
+          const sz = Math.min(dayW, dayCellH) * 0.72;
 
           const dateStr = `${currentYear}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const dayEvts = filteredEvents.filter(e => dateStr >= e.date && dateStr <= (e.endDate || e.date));
 
           if (dayEvts.length > 0) {
-            // Use first event's category for the badge
             const cat = categories.find(c => c.id === dayEvts[0].categoryId);
             if (cat) {
               const [r, g, b] = hslToRgb(cat.color);
               doc.setFillColor(r, g, b);
-              doc.roundedRect(dx + (dayW - sz) / 2, dy - sz * 0.8, sz, sz, 1.1, 1.1, 'F');
+              // Circular/High-rounded badge for softness
+              doc.roundedRect(dx + (dayW - sz) / 2, dy - sz * 0.7, sz, sz, sz/2, sz/2, 'F');
               doc.setFont('helvetica', 'bold');
-              doc.setFontSize(4.5);
+              doc.setFontSize(5);
               doc.setTextColor(255, 255, 255);
-              doc.text(String(day), dx + dayW / 2, dy - 0.15, { align: 'center' });
+              doc.text(String(day), dx + dayW / 2, dy - sz * 0.1, { align: 'center' });
             }
           } else {
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(4.5);
-            // Sundays in light red
-            doc.setTextColor(dow === 0 ? 200 : 50, dow === 0 ? 60 : 55, dow === 0 ? 60 : 65);
-            doc.text(String(day), dx + dayW / 2, dy, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(5);
+            doc.setTextColor(70, 80, 100);
+            doc.text(String(day), dx + dayW / 2, dy - sz * 0.1, { align: 'center' });
           }
         }
       }
 
-      // ─── Dark navy panel at bottom ───
+      // ─── Events Panel ───
       const panelY = pageH - panelH;
-      doc.setFillColor(...NAVY);
-      doc.rect(0, panelY, pageW, panelH, 'F');
+      // Smooth out categories legend just above panel
+      if (activeCategories.length > 0) {
+        const legY = panelY - 6;
+        let legX = margin + 5;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(...NAVY);
+        doc.text('LEGENDA:', legX, legY);
+        legX += 16;
 
-      // ─── Events list in 2 columns ───
+        activeCategories.forEach(cat => {
+          const [r, g, b] = hslToRgb(cat.color);
+          doc.setFillColor(r, g, b);
+          doc.roundedRect(legX, legY - 3, 3, 3, 0.8, 0.8, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.5);
+          doc.setTextColor(60, 70, 90);
+          doc.text(cat.name, legX + 4.5, legY - 0.5);
+          legX += doc.getTextWidth(cat.name) + 12;
+        });
+      }
+
+      doc.setFillColor(...NAVY);
+      doc.roundedRect(margin, panelY, pageW - margin * 2, panelH - margin, 3, 3, 'F');
+
       const eventsByMonth: Record<number, typeof filteredEvents> = {};
       filteredEvents.forEach(evt => {
         const m = Number(evt.date.slice(5, 7)) - 1;
@@ -225,62 +233,66 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
         const leftMonths = sortedMonths.slice(0, half);
         const rightMonths = sortedMonths.slice(half);
 
-        const colW = (pageW - margin * 2 - 8) / 2;
-        const badgeSz = 5.8;
-        const rowH = 4.5;
+        const colW = (pageW - margin * 2 - 15) / 2;
+        const badgeSz = 7;
+        const rowH = 7;
 
         const drawColumn = (months: number[], startX: number) => {
-          let yPos = panelY + 8;
-          const maxY = pageH - 5;
+          let yPos = panelY + 12;
+          const maxY = panelY + panelH - 15;
 
           months.forEach(month => {
             const monthEvts = eventsByMonth[month].sort((a, b) => a.date.localeCompare(b.date));
-            if (yPos + 7 > maxY) return;
+            if (yPos + 10 > maxY) return;
 
-            // Month heading — bold golden yellow with underline
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(7.5);
-            doc.setTextColor(255, 213, 80);
-            doc.text(MONTH_NAMES_CAP[month], startX, yPos);
-            const tw = doc.getTextWidth(MONTH_NAMES_CAP[month]);
-            doc.setDrawColor(255, 213, 80);
-            doc.setLineWidth(0.35);
-            doc.line(startX, yPos + 1, startX + tw, yPos + 1);
-            yPos += 5.5;
+            doc.setFontSize(10);
+            doc.setTextColor(255, 255, 255);
+            doc.text(MONTH_NAMES_CAP[month], startX + 5, yPos);
+            yPos += 8;
 
             monthEvts.forEach(evt => {
               if (yPos + rowH > maxY) return;
               const cat = categories.find(c => c.id === evt.categoryId);
               const dayNum = evt.date.split('-')[2];
 
-              // Badge
               if (cat) {
                 const [r, g, b] = hslToRgb(cat.color);
                 doc.setFillColor(r, g, b);
-                doc.roundedRect(startX, yPos - badgeSz * 0.78, badgeSz, badgeSz, 0.9, 0.9, 'F');
+                doc.roundedRect(startX + 5, yPos - badgeSz * 0.75, badgeSz, badgeSz, 1.2, 1.2, 'F');
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(5);
+                doc.setFontSize(7);
                 doc.setTextColor(255, 255, 255);
-                doc.text(dayNum, startX + badgeSz / 2, yPos - 0.5, { align: 'center' });
+                doc.text(dayNum, startX + 5 + badgeSz / 2, yPos - 0.5, { align: 'center' });
               }
 
-              // Event title
-              const hasLink = !!evt.link;
-              doc.setFont('helvetica', hasLink ? 'bolditalic' : 'normal');
-              doc.setFontSize(5.2);
-              doc.setTextColor(hasLink ? 130 : 220, hasLink ? 210 : 225, hasLink ? 255 : 240);
-              const maxTitleW = colW - badgeSz - 4;
-              const lines = doc.splitTextToSize(evt.title || 'Evento', maxTitleW);
-              doc.text(lines[0], startX + badgeSz + 2.5, yPos - 0.5);
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(7.5);
+              doc.setTextColor(255, 255, 255);
+              const maxTitleW = colW - badgeSz - 10;
+              const titleText = evt.title || 'Evento';
+              const truncatedTitle = doc.getTextWidth(titleText) > maxTitleW 
+                ? titleText.substring(0, Math.floor(maxTitleW / 2)) + '...'
+                : titleText;
+              
+              doc.text(truncatedTitle, startX + badgeSz + 10, yPos - 0.5);
+              
+              if (evt.link) {
+                doc.setDrawColor(255, 255, 255);
+                doc.setLineWidth(0.1);
+                const tw = doc.getTextWidth(truncatedTitle);
+                doc.line(startX + badgeSz + 10, yPos + 0.5, startX + badgeSz + 10 + tw, yPos + 0.5);
+              }
+              
               yPos += rowH;
             });
 
-            yPos += 2.5;
+            yPos += 5;
           });
         };
 
-        drawColumn(leftMonths, margin);
-        drawColumn(rightMonths, margin + colW + 8);
+        drawColumn(leftMonths, margin + 5);
+        drawColumn(rightMonths, margin + colW + 10);
       }
 
       // ─── Category legend (just above the panel) ───
