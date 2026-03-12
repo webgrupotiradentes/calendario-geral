@@ -27,6 +27,7 @@ const LocationCalendar = () => {
   const handlePrevious = useCallback(() => setCurrentDate(prev => subMonths(prev, 1)), []);
   const handleNext = useCallback(() => setCurrentDate(prev => addMonths(prev, 1)), []);
   const handleToday = useCallback(() => { setCurrentDate(new Date()); setSelectedDate(new Date()); }, []);
+  const handleClear = useCallback(() => { setCurrentDate(new Date()); setSelectedDate(null); }, []);
   const handleSelectDate = useCallback((date: Date) => { setSelectedDate(date); setCurrentDate(date); }, []);
 
   return (
@@ -58,6 +59,7 @@ const LocationCalendar = () => {
                 onPreviousMonth={handlePrevious}
                 onNextMonth={handleNext}
                 onToday={handleToday}
+                onClear={handleClear}
                 viewType="month"
               />
               <CalendarGrid
@@ -66,6 +68,7 @@ const LocationCalendar = () => {
                 categories={categories}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
+                onEventClick={setSelectedEvent}
                 activeCategories={[]}
               />
             </div>
