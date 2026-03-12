@@ -18,7 +18,8 @@ interface PdfCalendarGeneratorProps {
 }
 
 function hslToRgb(hslStr: string): [number, number, number] {
-  const parts = hslStr.trim().split(/[\s,/]+/).map(Number);
+  // Replace % signs so parsing works for strings like "210 100% 50%"
+  const parts = hslStr.replace(/%/g, '').trim().split(/[\s,/]+/).map(Number);
   const h = (parts[0] || 0) / 360;
   const s = (parts[1] || 0) / 100;
   const l = (parts[2] || 0) / 100;
@@ -89,9 +90,13 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
         filteredEvents = filteredEvents.filter(e => selectedCategoryIds.includes(e.categoryId));
       }
 
-      const activeCategories = selectedCategoryIds.length > 0
+      const rawCategories = selectedCategoryIds.length > 0
         ? categories.filter(c => selectedCategoryIds.includes(c.id))
         : categories.filter(c => filteredEvents.some(e => e.categoryId === c.id));
+
+      const uniqueCats = new Map();
+      rawCategories.forEach(c => uniqueCats.set(c.name.trim().toLowerCase(), c));
+      const activeCategories = Array.from(uniqueCats.values());
 
       // ─── White background ───
       doc.setFillColor(255, 255, 255);
@@ -166,7 +171,7 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
           const dy = dayCellY + week * dayCellH;
           
           // Much smaller and softer badge
-          const sz = Math.min(dayW, dayCellH) * 0.72;
+          const sz = Math.min(dayW, dayCellH) * 0.62;
 
           const dateStr = `${currentYear}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const dayEvts = filteredEvents.filter(e => dateStr >= e.date && dateStr <= (e.endDate || e.date));
@@ -176,43 +181,43 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
             if (cat) {
               const [r, g, b] = hslToRgb(cat.color);
               doc.setFillColor(r, g, b);
-              // Circular/High-rounded badge for softness
-              doc.roundedRect(dx + (dayW - sz) / 2, dy - sz * 0.7, sz, sz, sz/2, sz/2, 'F');
+              // Circular badge
+              doc.roundedRect(dx + (dayW - sz) / 2, dy - sz * 0.75, sz, sz, sz/2, sz/2, 'F');
               doc.setFont('helvetica', 'bold');
-              doc.setFontSize(5);
+              doc.setFontSize(4.5);
               doc.setTextColor(255, 255, 255);
-              doc.text(String(day), dx + dayW / 2, dy - sz * 0.1, { align: 'center' });
+              doc.text(String(day), dx + dayW / 2, dy - sz * 0.15, { align: 'center' });
             }
           } else {
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(5);
-            doc.setTextColor(70, 80, 100);
-            doc.text(String(day), dx + dayW / 2, dy - sz * 0.1, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(4.5);
+            doc.setTextColor(110, 120, 140);
+            doc.text(String(day), dx + dayW / 2, dy - sz * 0.15, { align: 'center' });
           }
         }
       }
 
       // ─── Events Panel ───
       const panelY = pageH - panelH;
-      // Smooth out categories legend just above panel
+      // Smooth out categories legend just above panel - REMOVE DUPLICATE IF ANY
       if (activeCategories.length > 0) {
-        const legY = panelY - 6;
+        const legY = panelY - 5;
         let legX = margin + 5;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
+        doc.setFontSize(6);
         doc.setTextColor(...NAVY);
         doc.text('LEGENDA:', legX, legY);
-        legX += 16;
+        legX += 14;
 
         activeCategories.forEach(cat => {
           const [r, g, b] = hslToRgb(cat.color);
           doc.setFillColor(r, g, b);
-          doc.roundedRect(legX, legY - 3, 3, 3, 0.8, 0.8, 'F');
+          doc.roundedRect(legX, legY - 2.8, 2.8, 2.8, 0.6, 0.6, 'F');
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(6.5);
-          doc.setTextColor(60, 70, 90);
-          doc.text(cat.name, legX + 4.5, legY - 0.5);
-          legX += doc.getTextWidth(cat.name) + 12;
+          doc.setFontSize(5.5);
+          doc.setTextColor(r, g, b); // Match label color to category
+          doc.text(cat.name, legX + 4, legY - 0.5);
+          legX += doc.getTextWidth(cat.name) + 10;
         });
       }
 
@@ -295,27 +300,7 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
         drawColumn(rightMonths, margin + colW + 10);
       }
 
-      // ─── Category legend (just above the panel) ───
-      if (activeCategories.length > 0) {
-        const legY = panelY - 4.5;
-        let legX = margin;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(5.5);
-        doc.setTextColor(40, 50, 70);
-        doc.text('LEGENDA:', legX, legY);
-        legX += 20;
 
-        activeCategories.forEach(cat => {
-          const [r, g, b] = hslToRgb(cat.color);
-          doc.setFillColor(r, g, b);
-          doc.roundedRect(legX, legY - 3.5, 3.5, 3.5, 0.6, 0.6, 'F');
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(5.5);
-          doc.setTextColor(40, 50, 70);
-          doc.text(cat.name, legX + 5, legY);
-          legX += doc.getTextWidth(cat.name) + 12;
-        });
-      }
 
       // ─── Footer inside dark panel ───
       doc.setFont('helvetica', 'normal');
