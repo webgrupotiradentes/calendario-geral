@@ -124,7 +124,7 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
       const gapY = 4.5;
       const calTop = titleH;
 
-      const panelH = pageH * 0.38; // Slightly smaller panel
+      const panelH = pageH * 0.41; // Slightly larger panel to fit more events
       const calAreaH = pageH - calTop - panelH - 10;
       const cellW = (pageW - margin * 2 - gapX * (cols - 1)) / cols;
       const cellH = (calAreaH - gapY * (rows - 1)) / rows;
@@ -234,27 +234,45 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
       const sortedMonths = Object.keys(eventsByMonth).map(Number).sort((a, b) => a - b);
 
       if (sortedMonths.length > 0) {
-        const half = Math.ceil(sortedMonths.length / 2);
-        const leftMonths = sortedMonths.slice(0, half);
-        const rightMonths = sortedMonths.slice(half);
+        // Use 3 columns to fit more events
+        const colCount = 3;
+        const colW = (pageW - margin * 2 - 20) / colCount;
+        const badgeSz = 5.5;
+        const rowH = 5.5;
 
-        const colW = (pageW - margin * 2 - 15) / 2;
-        const badgeSz = 7;
-        const rowH = 7;
+        // Balanced distribution by "weight" (header + events)
+        const totalWeight = sortedMonths.reduce((acc, m) => acc + eventsByMonth[m].length + 2, 0);
+        const weightPerCol = totalWeight / colCount;
+
+        const columns: number[][] = [[], [], []];
+        let currentCol = 0;
+        let currentWeight = 0;
+
+        sortedMonths.forEach(m => {
+          const mWeight = eventsByMonth[m].length + 2;
+          // If adding next month exceeds average weight significantly, move to next column
+          // but ensure we don't exceed 3 columns
+          if (currentWeight + mWeight/2 > weightPerCol && currentCol < colCount - 1) {
+            currentCol++;
+            currentWeight = 0;
+          }
+          columns[currentCol].push(m);
+          currentWeight += mWeight;
+        });
 
         const drawColumn = (months: number[], startX: number) => {
-          let yPos = panelY + 12;
-          const maxY = panelY + panelH - 15;
+          let yPos = panelY + 10;
+          const maxY = panelY + panelH - 12;
 
           months.forEach(month => {
             const monthEvts = eventsByMonth[month].sort((a, b) => a.date.localeCompare(b.date));
-            if (yPos + 10 > maxY) return;
+            if (yPos + 8 > maxY) return;
 
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
+            doc.setFontSize(8.5);
             doc.setTextColor(255, 255, 255);
-            doc.text(MONTH_NAMES_CAP[month], startX + 5, yPos);
-            yPos += 8;
+            doc.text(MONTH_NAMES_CAP[month], startX + 3, yPos);
+            yPos += 6;
 
             monthEvts.forEach(evt => {
               if (yPos + rowH > maxY) return;
@@ -264,40 +282,41 @@ export function PdfCalendarGenerator({ events, categories }: PdfCalendarGenerato
               if (cat) {
                 const [r, g, b] = hslToRgb(cat.color);
                 doc.setFillColor(r, g, b);
-                doc.roundedRect(startX + 5, yPos - badgeSz * 0.75, badgeSz, badgeSz, 1.2, 1.2, 'F');
+                doc.roundedRect(startX + 3, yPos - badgeSz * 0.75, badgeSz, badgeSz, 1, 1, 'F');
                 doc.setFont('helvetica', 'bold');
-                doc.setFontSize(7);
+                doc.setFontSize(5.5);
                 doc.setTextColor(255, 255, 255);
-                doc.text(dayNum, startX + 5 + badgeSz / 2, yPos - 0.5, { align: 'center' });
+                doc.text(dayNum, startX + 3 + badgeSz / 2, yPos - 0.5, { align: 'center' });
               }
 
               doc.setFont('helvetica', 'bold');
-              doc.setFontSize(7.5);
+              doc.setFontSize(6);
               doc.setTextColor(255, 255, 255);
-              const maxTitleW = colW - badgeSz - 10;
+              const maxTitleW = colW - badgeSz - 8;
               const titleText = evt.title || 'Evento';
               const truncatedTitle = doc.getTextWidth(titleText) > maxTitleW 
-                ? titleText.substring(0, Math.floor(maxTitleW / 2)) + '...'
+                ? titleText.substring(0, Math.floor(maxTitleW / 1.6)) + '...'
                 : titleText;
               
-              doc.text(truncatedTitle, startX + badgeSz + 10, yPos - 0.5);
+              doc.text(truncatedTitle, startX + badgeSz + 7, yPos - 0.5);
               
               if (evt.link) {
                 doc.setDrawColor(255, 255, 255);
                 doc.setLineWidth(0.1);
                 const tw = doc.getTextWidth(truncatedTitle);
-                doc.line(startX + badgeSz + 10, yPos + 0.5, startX + badgeSz + 10 + tw, yPos + 0.5);
+                doc.line(startX + badgeSz + 7, yPos + 0.3, startX + badgeSz + 7 + tw, yPos + 0.3);
               }
               
               yPos += rowH;
             });
 
-            yPos += 5;
+            yPos += 3;
           });
         };
 
-        drawColumn(leftMonths, margin + 5);
-        drawColumn(rightMonths, margin + colW + 10);
+        columns.forEach((colMonths, i) => {
+          drawColumn(colMonths, margin + i * (colW + 10));
+        });
       }
 
 
