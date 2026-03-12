@@ -186,7 +186,7 @@ const Index = () => {
           </DropdownMenu>
 
           {/* IES (Macros) - Toggle Group UI */}
-          <div className="flex bg-muted/40 p-1 rounded-2xl border border-border/40 gap-1.5 max-w-full overflow-x-auto hide-scrollbar">
+          <div className="flex bg-muted/30 p-1 rounded-full border border-border/30 gap-1 max-w-full overflow-x-auto hide-scrollbar">
             {macros.map(mac => {
               const isActive = activeMacros.includes(mac.id);
               return (
@@ -194,10 +194,10 @@ const Index = () => {
                   key={mac.id}
                   onClick={() => handleToggleMacro(mac.id)}
                   className={cn(
-                    'relative h-8 px-4 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300',
+                    'relative h-8 px-4 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300',
                     isActive
-                      ? 'bg-card text-primary shadow-apple border border-border/40 scale-105'
-                      : 'text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
                   )}
                 >
                   {mac.name}
