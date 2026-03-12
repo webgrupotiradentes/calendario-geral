@@ -134,7 +134,7 @@ const Index = () => {
         </div>
 
         {/* ── Filter bar ─────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-5 animate-fade-in" style={{ animationDelay: '100ms' }}>
 
           {/* Search */}
           <SearchBar value={searchQuery} onChange={setSearchQuery} className="w-48" />
