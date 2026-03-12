@@ -54,6 +54,8 @@ export function useAuth() {
 
     async function initializeSession() {
       try {
+        if (mounted) setAuthState(prev => ({ ...prev, isLoading: true }));
+        
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
@@ -67,6 +69,7 @@ export function useAuth() {
           return;
         }
 
+        if (mounted) setAuthState(prev => ({ ...prev, rolesLoading: true }));
         const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
 
         if (mounted) {
@@ -81,7 +84,7 @@ export function useAuth() {
         }
       } catch (err) {
         console.error('Initialization error:', err);
-        if (mounted) setAuthState(prev => ({ ...prev, isLoading: false }));
+        if (mounted) setAuthState(prev => ({ ...prev, isLoading: false, rolesLoading: false }));
       }
     }
 
@@ -90,15 +93,26 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (mounted) {
         if (session?.user) {
-          const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
-          setAuthState({
-            user: session.user,
-            session,
-            isLoading: false,
-            rolesLoading: false,
-            isAdmin,
-            isSuperAdmin,
-          });
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+            setAuthState(prev => ({ ...prev, rolesLoading: true }));
+            const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
+            setAuthState({
+              user: session.user,
+              session,
+              isLoading: false,
+              rolesLoading: false,
+              isAdmin,
+              isSuperAdmin,
+            });
+          } else {
+            // Keep existing state but update user/session
+            setAuthState(prev => ({
+              ...prev,
+              user: session.user,
+              session,
+              isLoading: false,
+            }));
+          }
         } else {
           setAuthState({
             user: null,

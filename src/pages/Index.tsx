@@ -28,10 +28,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Index = () => {
-  const { events, filterEvents } = useCalendarEvents();
-  const { categories } = useCategories();
-  const { macros } = useMacros();
-  const { micros } = useMicros();
+  const { events, filterEvents, isLoading: eventsLoading } = useCalendarEvents();
+  const { categories, isLoading: categoriesLoading } = useCategories();
+  const { macros, isLoading: macrosLoading } = useMacros();
+  const { micros, isLoading: microsLoading } = useMicros();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -41,6 +41,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [currentView, setCurrentView] = useState<CalendarViewType>('month');
+
+  const isLoading = eventsLoading || categoriesLoading || macrosLoading || microsLoading;
 
   // Filter micros based on selected macros (if any)
   const availableMicros = activeMacros.length > 0
@@ -111,6 +113,18 @@ const Index = () => {
 
   const filteredEvents = filterEvents(activeCategories, searchQuery, activeMacros, activeMicro);
   const selectedCategory = selectedEvent ? categories.find(c => c.id === selectedEvent.categoryId) : undefined;
+
+  if (isLoading && events.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-20 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+          <p className="text-muted-foreground animate-pulse">Carregando calendário...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
