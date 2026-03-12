@@ -44,11 +44,17 @@ export function CalendarGrid({
   };
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
+    <div className="rounded-2xl border border-border/40 bg-card overflow-hidden shadow-[var(--shadow-card)] animate-fade-in">
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 border-b border-border/50">
-        {WEEKDAYS.map(day => (
-          <div key={day} className="text-center text-xs font-semibold text-muted-foreground py-3 uppercase tracking-wider">
+      <div className="grid grid-cols-7 bg-muted/30">
+        {WEEKDAYS.map((day, i) => (
+          <div
+            key={day}
+            className={cn(
+              "text-center text-[11px] font-bold py-3 uppercase tracking-widest",
+              i === 0 ? "text-destructive/60" : "text-muted-foreground/70"
+            )}
+          >
             {day}
           </div>
         ))}
@@ -61,24 +67,30 @@ export function CalendarGrid({
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
           const isDayToday = isToday(day);
+          const isSunday = day.getDay() === 0;
 
           return (
             <div
               key={index}
               onClick={() => onSelectDate(day)}
               className={cn(
-                "relative min-h-[80px] sm:min-h-[100px] p-1.5 sm:p-2 border-b border-r border-border/30 transition-colors text-left group cursor-pointer",
-                "hover:bg-muted/50 focus-within:bg-muted/50",
-                !isCurrentMonth && "opacity-30 bg-muted/20",
-                isSelected && "bg-primary/5 ring-1 ring-inset ring-primary/30",
+                "relative min-h-[90px] sm:min-h-[110px] p-1.5 sm:p-2 border-b border-r border-border/20 transition-all duration-200 text-left group cursor-pointer",
+                "hover:bg-primary/[0.03]",
+                !isCurrentMonth && "opacity-25",
+                isSelected && "bg-primary/[0.06] ring-1 ring-inset ring-primary/20",
               )}
+              style={{
+                animationDelay: `${(index % 7) * 20}ms`,
+              }}
             >
               <span
                 className={cn(
-                  "inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium transition-transform group-hover:scale-110",
-                  isDayToday && "bg-primary text-primary-foreground font-bold",
-                  isSelected && !isDayToday && "bg-secondary text-foreground",
-                  !isDayToday && !isSelected && "text-foreground"
+                  "inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium transition-all duration-200",
+                  "group-hover:scale-110",
+                  isDayToday && "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/25",
+                  isSelected && !isDayToday && "bg-secondary text-secondary-foreground font-semibold",
+                  !isDayToday && !isSelected && isSunday && "text-destructive/70",
+                  !isDayToday && !isSelected && !isSunday && "text-foreground"
                 )}
               >
                 {format(day, 'd')}
@@ -86,7 +98,7 @@ export function CalendarGrid({
 
               {/* Event indicators */}
               <div className="mt-0.5 space-y-0.5">
-                {dayEvents.slice(0, 3).map((event, i) => {
+                {dayEvents.slice(0, 3).map((event) => {
                   const category = getCategoryById(event.categoryId);
                   return (
                     <button
@@ -95,10 +107,11 @@ export function CalendarGrid({
                         e.stopPropagation();
                         onEventClick(event);
                       }}
-                      className="w-full text-[10px] leading-tight font-medium px-1.5 py-0.5 rounded truncate text-left transition-all hover:brightness-90 active:scale-95"
+                      className="w-full text-[10px] leading-tight font-semibold px-1.5 py-[3px] rounded-md truncate text-left transition-all duration-150 hover:brightness-90 active:scale-95 hover:shadow-sm"
                       style={{
-                        backgroundColor: category ? `hsl(${category.color} / 0.15)` : 'hsl(var(--muted))',
-                        color: category ? `hsl(${category.color})` : 'hsl(var(--muted-foreground))'
+                        backgroundColor: category ? `hsl(${category.color} / 0.12)` : 'hsl(var(--muted))',
+                        color: category ? `hsl(${category.color})` : 'hsl(var(--muted-foreground))',
+                        borderLeft: category ? `2px solid hsl(${category.color} / 0.5)` : 'none',
                       }}
                     >
                       {event.title}
@@ -106,7 +119,7 @@ export function CalendarGrid({
                   );
                 })}
                 {dayEvents.length > 3 && (
-                  <span className="text-[9px] text-muted-foreground font-medium px-1.5 block">
+                  <span className="text-[9px] text-primary/60 font-bold px-1.5 block">
                     +{dayEvents.length - 3} mais
                   </span>
                 )}
