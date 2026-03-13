@@ -160,6 +160,7 @@ const Admin = () => {
   const handleCreateCategory = async (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addCategory(data);
+      await addLog('Criou', 'Categoria', data.name);
       setIsCategoryFormOpen(false);
       toast.success('Categoria criada com sucesso!');
     } catch (error: any) {
@@ -171,6 +172,7 @@ const Admin = () => {
     if (!editingCategory) return;
     try {
       await updateCategory(editingCategory.id, data);
+      await addLog('Atualizou', 'Categoria', data.name);
       setEditingCategory(null);
       toast.success('Categoria atualizada com sucesso!');
     } catch (error: any) {
@@ -187,7 +189,9 @@ const Admin = () => {
       return;
     }
     try {
+      const catName = categories.find(c => c.id === deletingCategoryId)?.name || '';
       await deleteCategory(deletingCategoryId);
+      await addLog('Excluiu', 'Categoria', catName);
       setDeletingCategoryId(null);
       toast.success('Categoria excluída com sucesso!');
     } catch (error: any) {
