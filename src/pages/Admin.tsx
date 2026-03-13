@@ -246,6 +246,7 @@ const Admin = () => {
   const handleCreateMicro = async (data: Omit<Micro, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addMicro(data);
+      await addLog('Criou', 'Local', data.name);
       setIsMicroFormOpen(false);
       toast.success('Local criado com sucesso!');
     } catch (error: any) {
@@ -257,6 +258,7 @@ const Admin = () => {
     if (!editingMicro) return;
     try {
       await updateMicro(editingMicro.id, data);
+      await addLog('Atualizou', 'Local', data.name);
       setEditingMicro(null);
       toast.success('Local atualizado com sucesso!');
     } catch (error: any) {
@@ -267,7 +269,9 @@ const Admin = () => {
   const handleDeleteMicro = async () => {
     if (!deletingMicroId) return;
     try {
+      const microName = micros.find(m => m.id === deletingMicroId)?.name || '';
       await deleteMicro(deletingMicroId);
+      await addLog('Excluiu', 'Local', microName);
       setDeletingMicroId(null);
       toast.success('Local excluído com sucesso!');
     } catch (error: any) {
