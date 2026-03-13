@@ -48,7 +48,7 @@ const Admin = () => {
   const { categories, addCategory, updateCategory, deleteCategory, refetch: refetchCategories } = useCategories();
   const { macros, addMacro, updateMacro, deleteMacro } = useMacros();
   const { micros, addMicro, updateMicro, deleteMicro } = useMicros();
-  const { logs, isLoading: isLoadingLogs } = useLogs();
+  const { logs, isLoading: isLoadingLogs, addLog } = useLogs();
   const { isAdmin, isSuperAdmin, user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,6 +123,7 @@ const Admin = () => {
   const handleCreateEvent = async (data: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addEvent(data);
+      await addLog('Criou', 'Evento', data.title);
       setIsEventFormOpen(false);
       toast.success('Evento criado com sucesso!');
     } catch (error: any) {
@@ -134,6 +135,7 @@ const Admin = () => {
     if (!editingEvent) return;
     try {
       await updateEvent(editingEvent.id, data);
+      await addLog('Atualizou', 'Evento', data.title);
       setEditingEvent(null);
       toast.success('Evento atualizado com sucesso!');
     } catch (error: any) {
@@ -144,7 +146,9 @@ const Admin = () => {
   const handleDeleteEvent = async () => {
     if (!deletingEventId) return;
     try {
+      const evtName = events.find(e => e.id === deletingEventId)?.title || '';
       await deleteEvent(deletingEventId);
+      await addLog('Excluiu', 'Evento', evtName);
       setDeletingEventId(null);
       toast.success('Evento excluído com sucesso!');
     } catch (error: any) {
@@ -156,6 +160,7 @@ const Admin = () => {
   const handleCreateCategory = async (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addCategory(data);
+      await addLog('Criou', 'Categoria', data.name);
       setIsCategoryFormOpen(false);
       toast.success('Categoria criada com sucesso!');
     } catch (error: any) {
@@ -167,6 +172,7 @@ const Admin = () => {
     if (!editingCategory) return;
     try {
       await updateCategory(editingCategory.id, data);
+      await addLog('Atualizou', 'Categoria', data.name);
       setEditingCategory(null);
       toast.success('Categoria atualizada com sucesso!');
     } catch (error: any) {
@@ -183,7 +189,9 @@ const Admin = () => {
       return;
     }
     try {
+      const catName = categories.find(c => c.id === deletingCategoryId)?.name || '';
       await deleteCategory(deletingCategoryId);
+      await addLog('Excluiu', 'Categoria', catName);
       setDeletingCategoryId(null);
       toast.success('Categoria excluída com sucesso!');
     } catch (error: any) {
@@ -195,6 +203,7 @@ const Admin = () => {
   const handleCreateMacro = async (data: Omit<Macro, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addMacro(data);
+      await addLog('Criou', 'IES', data.name);
       setIsMacroFormOpen(false);
       toast.success('IES criada com sucesso!');
     } catch (error: any) {
@@ -206,6 +215,7 @@ const Admin = () => {
     if (!editingMacro) return;
     try {
       await updateMacro(editingMacro.id, data);
+      await addLog('Atualizou', 'IES', data.name);
       setEditingMacro(null);
       toast.success('IES atualizada com sucesso!');
     } catch (error: any) {
@@ -222,7 +232,9 @@ const Admin = () => {
       return;
     }
     try {
+      const macroName = macros.find(m => m.id === deletingMacroId)?.name || '';
       await deleteMacro(deletingMacroId);
+      await addLog('Excluiu', 'IES', macroName);
       setDeletingMacroId(null);
       toast.success('IES excluída com sucesso!');
     } catch (error: any) {
@@ -234,6 +246,7 @@ const Admin = () => {
   const handleCreateMicro = async (data: Omit<Micro, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addMicro(data);
+      await addLog('Criou', 'Local', data.name);
       setIsMicroFormOpen(false);
       toast.success('Local criado com sucesso!');
     } catch (error: any) {
@@ -245,6 +258,7 @@ const Admin = () => {
     if (!editingMicro) return;
     try {
       await updateMicro(editingMicro.id, data);
+      await addLog('Atualizou', 'Local', data.name);
       setEditingMicro(null);
       toast.success('Local atualizado com sucesso!');
     } catch (error: any) {
@@ -255,7 +269,9 @@ const Admin = () => {
   const handleDeleteMicro = async () => {
     if (!deletingMicroId) return;
     try {
+      const microName = micros.find(m => m.id === deletingMicroId)?.name || '';
       await deleteMicro(deletingMicroId);
+      await addLog('Excluiu', 'Local', microName);
       setDeletingMicroId(null);
       toast.success('Local excluído com sucesso!');
     } catch (error: any) {
