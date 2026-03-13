@@ -203,6 +203,7 @@ const Admin = () => {
   const handleCreateMacro = async (data: Omit<Macro, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addMacro(data);
+      await addLog('Criou', 'IES', data.name);
       setIsMacroFormOpen(false);
       toast.success('IES criada com sucesso!');
     } catch (error: any) {
@@ -214,6 +215,7 @@ const Admin = () => {
     if (!editingMacro) return;
     try {
       await updateMacro(editingMacro.id, data);
+      await addLog('Atualizou', 'IES', data.name);
       setEditingMacro(null);
       toast.success('IES atualizada com sucesso!');
     } catch (error: any) {
@@ -230,7 +232,9 @@ const Admin = () => {
       return;
     }
     try {
+      const macroName = macros.find(m => m.id === deletingMacroId)?.name || '';
       await deleteMacro(deletingMacroId);
+      await addLog('Excluiu', 'IES', macroName);
       setDeletingMacroId(null);
       toast.success('IES excluída com sucesso!');
     } catch (error: any) {
