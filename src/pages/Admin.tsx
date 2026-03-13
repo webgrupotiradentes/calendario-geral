@@ -123,6 +123,7 @@ const Admin = () => {
   const handleCreateEvent = async (data: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await addEvent(data);
+      await addLog('Criou', 'Evento', data.title);
       setIsEventFormOpen(false);
       toast.success('Evento criado com sucesso!');
     } catch (error: any) {
@@ -134,6 +135,7 @@ const Admin = () => {
     if (!editingEvent) return;
     try {
       await updateEvent(editingEvent.id, data);
+      await addLog('Atualizou', 'Evento', data.title);
       setEditingEvent(null);
       toast.success('Evento atualizado com sucesso!');
     } catch (error: any) {
@@ -144,7 +146,9 @@ const Admin = () => {
   const handleDeleteEvent = async () => {
     if (!deletingEventId) return;
     try {
+      const evtName = events.find(e => e.id === deletingEventId)?.title || '';
       await deleteEvent(deletingEventId);
+      await addLog('Excluiu', 'Evento', evtName);
       setDeletingEventId(null);
       toast.success('Evento excluído com sucesso!');
     } catch (error: any) {
