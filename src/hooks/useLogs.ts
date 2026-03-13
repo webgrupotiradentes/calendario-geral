@@ -19,37 +19,38 @@ export function useLogs() {
     const fetchLogs = useCallback(async (isMounted: boolean = true) => {
         setIsLoading(true);
         try {
-            const { data: logsData, error: logsError } = await supabase
-                .from('activity_logs')
-                .select(`
-                    id,
-                    user_id,
-                    action,
-                    entity_type,
-                    entity_name,
-                    created_at,
-                    profiles:user_id (
-                        email,
-                        full_name
-                    )
-                `)
-                .order('created_at', { ascending: false })
-                .limit(100);
+            // Fetch logs and profiles separately to avoid PostgREST relationship issues
+            const [logsRes, profilesRes] = await Promise.all([
+                supabase
+                    .from('activity_logs')
+                    .select('id, user_id, action, entity_type, entity_name, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(100),
+                supabase
+                    .from('profiles')
+                    .select('id, email, full_name'),
+            ]);
 
             if (isMounted) {
-                if (logsError) {
-                    console.error('Error fetching logs:', logsError);
+                if (logsRes.error) {
+                    console.error('Error fetching logs:', logsRes.error);
                 } else {
-                    setLogs((logsData || []).map((row: any) => ({
-                        id: row.id,
-                        userId: row.user_id,
-                        action: row.action,
-                        entityType: row.entity_type,
-                        entityName: row.entity_name,
-                        createdAt: row.created_at,
-                        userEmail: row.profiles?.email,
-                        userFullName: row.profiles?.full_name,
-                    })));
+                    const profilesMap = new Map(
+                        (profilesRes.data || []).map((p: any) => [p.id, p])
+                    );
+                    setLogs((logsRes.data || []).map((row: any) => {
+                        const profile = profilesMap.get(row.user_id);
+                        return {
+                            id: row.id,
+                            userId: row.user_id,
+                            action: row.action,
+                            entityType: row.entity_type,
+                            entityName: row.entity_name,
+                            createdAt: row.created_at,
+                            userEmail: profile?.email,
+                            userFullName: profile?.full_name,
+                        };
+                    }));
                 }
             }
         } catch (error) {
@@ -65,7 +66,6 @@ export function useLogs() {
 
     const addLog = useCallback(async (action: string, entityType: string, entityName?: string) => {
         const { data: { user } } = await supabase.auth.getUser();
-
         if (!user) return;
 
         const { error } = await supabase
@@ -78,7 +78,7 @@ export function useLogs() {
             });
 
         if (error) {
-            console.error('Error manual adding log:', error);
+            console.error('Error adding log:', error);
         } else {
             fetchLogs();
         }
@@ -92,34 +92,16 @@ export function useLogs() {
             .channel('activity_logs_changes')
             .on(
                 'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'activity_logs'
-                },
-                () => {
-                    fetchLogs(isMounted);
-                }
+                { event: 'INSERT', schema: 'public', table: 'activity_logs' },
+                () => { fetchLogs(isMounted); }
             )
             .subscribe();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-                fetchLogs(isMounted);
-            }
-        });
 
         return () => {
             isMounted = false;
             supabase.removeChannel(channel);
-            subscription.unsubscribe();
         };
     }, [fetchLogs]);
 
-    return {
-        logs,
-        isLoading,
-        addLog,
-        refetch: fetchLogs,
-    };
+    return { logs, isLoading, addLog, refetch: fetchLogs };
 }

@@ -48,7 +48,7 @@ const Admin = () => {
   const { categories, addCategory, updateCategory, deleteCategory, refetch: refetchCategories } = useCategories();
   const { macros, addMacro, updateMacro, deleteMacro } = useMacros();
   const { micros, addMicro, updateMicro, deleteMicro } = useMicros();
-  const { logs, isLoading: isLoadingLogs } = useLogs();
+  const { logs, isLoading: isLoadingLogs, addLog } = useLogs();
   const { isAdmin, isSuperAdmin, user } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
