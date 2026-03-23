@@ -61,16 +61,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let lastHandledUser: string | null | undefined = undefined;
 
     /**
-     * Function to handle auth changes and fetch roles if necessary.
-     * Defined inside useEffect to avoid dependency issues.
+     * Safety timeout: ensure isLoading is set to false eventually
      */
+    const timeoutId = setTimeout(() => {
+      if (mounted && state.isLoading) {
+        console.warn('Auth initialization timed out, forcing isLoading: false');
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    }, 8000);
+
     async function handleAuthChange(session: Session | null) {
       if (!mounted) return;
       
       const user = session?.user ?? null;
       console.log('Auth handle change:', user?.id, 'prev:', lastHandledUser);
 
-      // If no user, clear state
       if (!user) {
         lastHandledUser = null;
         setState({
@@ -84,7 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // If user is same as before, just update session/user object without re-fetching roles
       if (lastHandledUser === user.id) {
         setState(prev => ({ 
           ...prev, 
@@ -95,17 +99,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // New user or initial state -> Fetch roles
       lastHandledUser = user.id;
-      setState(prev => ({ 
-        ...prev, 
-        user, 
-        session, 
-        isLoading: false, 
-        rolesLoading: true 
-      }));
+      setState(prev => ({ ...prev, user, session, isLoading: false, rolesLoading: true }));
 
-      const { isAdmin, isSuperAdmin } = await checkRoles(user.id, user.email);
+      const roles = await checkRoles(user.id, user.email);
 
       if (mounted) {
         setState({
@@ -113,22 +110,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           session,
           isLoading: false,
           rolesLoading: false,
-          isAdmin,
-          isSuperAdmin,
+          isAdmin: roles.isAdmin,
+          isSuperAdmin: roles.isSuperAdmin,
         });
       }
     }
 
-    // Initialize session manually on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        handleAuthChange(session);
-      }
-    });
+    // Initialize session manually on mount with error handling
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          console.error('Session error:', error);
+          setState(prev => ({ ...prev, isLoading: false }));
+          return;
+        }
+        handleAuthChange(data?.session ?? null);
+      })
+      .catch(err => {
+        console.error('Session promise catch error:', err);
+        if (mounted) setState(prev => ({ ...prev, isLoading: false }));
+      });
 
     // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      // NOTE: event is not used here but could be used for specific logic if needed
       if (mounted) {
         handleAuthChange(session);
       }
@@ -136,9 +141,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [checkRoles]); // checkRoles is stable from useCallback
+  }, [checkRoles]); // checkRoles is stable
 
   const signIn = async (email: string, password: string) => {
     return await supabase.auth.signInWithPassword({ email, password });
@@ -157,7 +163,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    // Note: handleAuthChange will be called via onAuthStateChange(SIGNED_OUT)
     return await supabase.auth.signOut();
   };
 
