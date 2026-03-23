@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -51,22 +51,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return { isAdmin, isSuperAdmin };
     } catch (error) {
-      console.error('Error checking roles:', error);
+      console.error('Error checking roles catch:', error);
       return { isAdmin: false, isSuperAdmin: false };
     }
   }, []);
 
   useEffect(() => {
     let mounted = true;
+    let lastHandledUser: string | null | undefined = undefined;
 
-    // Use only onAuthStateChange as the single source for updates.
-    // It fires immediately with the current session upon subscription.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, !!session?.user);
-
+    /**
+     * Function to handle auth changes and fetch roles if necessary.
+     * Defined inside useEffect to avoid dependency issues.
+     */
+    async function handleAuthChange(session: Session | null) {
       if (!mounted) return;
+      
+      const user = session?.user ?? null;
+      console.log('Auth handle change:', user?.id, 'prev:', lastHandledUser);
 
-      if (!session?.user) {
+      // If no user, clear state
+      if (!user) {
+        lastHandledUser = null;
         setState({
           user: null,
           session: null,
@@ -78,14 +84,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // If we have a user, handle role fetching
-      setState(prev => ({ ...prev, user: session.user, session, isLoading: false, rolesLoading: true }));
+      // If user is same as before, just update session/user object without re-fetching roles
+      if (lastHandledUser === user.id) {
+        setState(prev => ({ 
+          ...prev, 
+          user, 
+          session, 
+          isLoading: false 
+        }));
+        return;
+      }
 
-      const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
+      // New user or initial state -> Fetch roles
+      lastHandledUser = user.id;
+      setState(prev => ({ 
+        ...prev, 
+        user, 
+        session, 
+        isLoading: false, 
+        rolesLoading: true 
+      }));
+
+      const { isAdmin, isSuperAdmin } = await checkRoles(user.id, user.email);
 
       if (mounted) {
         setState({
-          user: session.user,
+          user,
           session,
           isLoading: false,
           rolesLoading: false,
@@ -93,13 +117,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           isSuperAdmin,
         });
       }
+    }
+
+    // Initialize session manually on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        handleAuthChange(session);
+      }
+    });
+
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // NOTE: event is not used here but could be used for specific logic if needed
+      if (mounted) {
+        handleAuthChange(session);
+      }
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [checkRoles]);
+  }, [checkRoles]); // checkRoles is stable from useCallback
 
   const signIn = async (email: string, password: string) => {
     return await supabase.auth.signInWithPassword({ email, password });
@@ -118,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    // Note: handleAuthChange will be called via onAuthStateChange(SIGNED_OUT)
     return await supabase.auth.signOut();
   };
 
