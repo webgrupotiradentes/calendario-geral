@@ -1,162 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuthContext } from '@/providers/AuthProvider';
 
-export type AppRole = 'admin' | 'user' | 'superadmin';
+export type { AppRole } from '@/providers/AuthProvider';
 
-const SUPERADMIN_EMAIL = 'osvaldo@mkt.grupotiradentes.com';
-
-interface AuthState {
-  user: User | null;
-  session: Session | null;
-  isLoading: boolean;
-  rolesLoading: boolean;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
-}
-
-
+/**
+ * useAuth hook that provides authentication state and methods.
+ * Now a simple wrapper around AuthContext to ensure all components share the same state.
+ */
 export function useAuth() {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    session: null,
-    isLoading: true,
-    rolesLoading: false,
-    isAdmin: false,
-    isSuperAdmin: false,
-  });
-
-  const checkRoles = useCallback(async (userId: string, email?: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error checking roles:', error);
-        return { isAdmin: false, isSuperAdmin: false };
-      }
-
-      const roles = data?.map(r => r.role) || [];
-      const isSuperAdmin = roles.includes('superadmin') || email === SUPERADMIN_EMAIL;
-      const isAdmin = isSuperAdmin || roles.includes('admin');
-
-      return { isAdmin, isSuperAdmin };
-    } catch (error) {
-      console.error('Error checking roles:', error);
-      return { isAdmin: false, isSuperAdmin: false };
-    }
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function initializeSession() {
-      try {
-        if (mounted) setAuthState(prev => ({ ...prev, isLoading: true }));
-        
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          if (mounted) setAuthState(prev => ({ ...prev, isLoading: false }));
-          return;
-        }
-
-        if (!session?.user) {
-          if (mounted) setAuthState(prev => ({ ...prev, user: null, session: null, isLoading: false, isAdmin: false, isSuperAdmin: false }));
-          return;
-        }
-
-        if (mounted) setAuthState(prev => ({ ...prev, rolesLoading: true }));
-        const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
-
-        if (mounted) {
-          setAuthState({
-            user: session.user,
-            session,
-            isLoading: false,
-            rolesLoading: false,
-            isAdmin,
-            isSuperAdmin,
-          });
-        }
-      } catch (err) {
-        console.error('Initialization error:', err);
-        if (mounted) setAuthState(prev => ({ ...prev, isLoading: false, rolesLoading: false }));
-      }
-    }
-
-    initializeSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (mounted) {
-        if (session?.user) {
-          if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-            setAuthState(prev => ({ ...prev, rolesLoading: true }));
-            const { isAdmin, isSuperAdmin } = await checkRoles(session.user.id, session.user.email);
-            setAuthState({
-              user: session.user,
-              session,
-              isLoading: false,
-              rolesLoading: false,
-              isAdmin,
-              isSuperAdmin,
-            });
-          } else {
-            // Keep existing state but update user/session
-            setAuthState(prev => ({
-              ...prev,
-              user: session.user,
-              session,
-              isLoading: false,
-            }));
-          }
-        } else {
-          setAuthState({
-            user: null,
-            session: null,
-            isLoading: false,
-            rolesLoading: false,
-            isAdmin: false,
-            isSuperAdmin: false,
-          });
-        }
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [checkRoles]);
-
-  const signIn = async (email: string, password: string) => {
-    const res = await supabase.auth.signInWithPassword({ email, password });
-    return res;
-  };
-
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const res = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { full_name: fullName },
-      },
-    });
-    return res;
-  };
-
-  const signOut = async () => {
-    const res = await supabase.auth.signOut();
-    return res;
-  };
+  const { 
+    user, 
+    session, 
+    isLoading, 
+    rolesLoading, 
+    isAdmin, 
+    isSuperAdmin, 
+    signIn, 
+    signUp, 
+    signOut 
+  } = useAuthContext();
 
   return {
-    ...authState,
+    user,
+    session,
+    isLoading,
+    rolesLoading,
+    isAdmin,
+    isSuperAdmin,
     signIn,
     signUp,
     signOut,
