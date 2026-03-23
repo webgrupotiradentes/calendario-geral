@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
+import { Key } from 'lucide-react';
 
 export function Header() {
   const location = useLocation();
@@ -21,6 +23,7 @@ export function Header() {
   const { user, isAdmin, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -131,6 +134,11 @@ export function Header() {
                     )}
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)} className="cursor-pointer">
+                    <Key className="w-4 h-4 mr-2" />
+                    Alterar Senha
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sair
@@ -168,6 +176,11 @@ export function Header() {
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium truncate">{user.email}</p>
                   </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)} className="cursor-pointer">
+                    <Key className="w-4 h-4 mr-2" />
+                    Alterar Senha
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" />
@@ -221,6 +234,10 @@ export function Header() {
           </nav>
         )}
       </div>
+      <ChangePasswordModal 
+        isOpen={isChangePasswordOpen} 
+        onOpenChange={setIsChangePasswordOpen} 
+      />
     </header>
   );
 }

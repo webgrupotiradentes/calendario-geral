@@ -16,7 +16,8 @@ export function useAuth() {
     isSuperAdmin, 
     signIn, 
     signUp, 
-    signOut 
+    signOut,
+    updatePassword
   } = useAuthContext();
 
   return {
@@ -29,5 +30,6 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
+    updatePassword,
   };
 }

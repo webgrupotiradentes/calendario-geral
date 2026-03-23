@@ -19,6 +19,7 @@ interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string, fullName?: string) => Promise<any>;
   signOut: () => Promise<any>;
+  updatePassword: (password: string) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -166,8 +167,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return await supabase.auth.signOut();
   };
 
+  const updatePassword = async (password: string) => {
+    return await supabase.auth.updateUser({ password });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );
