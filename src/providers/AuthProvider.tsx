@@ -14,6 +14,7 @@ interface AuthState {
   isAdmin: boolean;
   isSuperAdmin: boolean;
 }
+// ..
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<any>;
@@ -73,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     async function handleAuthChange(session: Session | null) {
       if (!mounted) return;
-      
+
       const user = session?.user ?? null;
       console.log('Auth handle change:', user?.id, 'prev:', lastHandledUser);
 
@@ -91,11 +92,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (lastHandledUser === user.id) {
-        setState(prev => ({ 
-          ...prev, 
-          user, 
-          session, 
-          isLoading: false 
+        setState(prev => ({
+          ...prev,
+          user,
+          session,
+          isLoading: false
         }));
         return;
       }
