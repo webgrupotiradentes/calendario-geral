@@ -74,7 +74,7 @@ export function CalendarGrid({
               key={index}
               onClick={() => onSelectDate(day)}
               className={cn(
-                "relative min-h-[100px] sm:min-h-[130px] p-2 border-b border-r border-border/10 transition-all duration-300 text-left group cursor-pointer",
+                "relative min-h-[70px] xs:min-h-[90px] md:min-h-[110px] 2xl:min-h-[130px] p-1.5 sm:p-2 border-b border-r border-border/10 transition-all duration-300 text-left group cursor-pointer",
                 "hover:bg-primary/[0.04]",
                 !isCurrentMonth && "opacity-20 translate-y-[-1px]",
                 isSelected && "bg-primary/[0.08] shadow-[inset_0_0_20px_rgba(var(--primary),0.05)]",
@@ -83,7 +83,7 @@ export function CalendarGrid({
               <div className="flex justify-between items-start mb-2">
                 <span
                   className={cn(
-                    "inline-flex items-center justify-center w-8 h-8 rounded-xl text-xs font-black transition-all duration-500",
+                    "inline-flex items-center justify-center w-6 h-6 xs:w-8 xs:h-8 rounded-lg xs:rounded-xl text-[10px] xs:text-xs font-black transition-all duration-500",
                     "group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:shadow-lg",
                     isDayToday && "bg-primary text-primary-foreground font-black shadow-xl shadow-primary/30 ring-4 ring-primary/10",
                     isSelected && !isDayToday && "bg-foreground text-background font-black scale-105 shadow-lg",

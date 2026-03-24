@@ -130,24 +130,24 @@ const Index = () => {
     <div className="min-h-screen bg-background relative selection:bg-primary selection:text-primary-foreground">
       <Header />
 
-      <main className="container mx-auto px-4 py-8 relative">
+      <main className="mx-auto px-4 sm:px-10 lg:px-16 py-8 relative w-full max-w-[1700px]">
         {/* ── Editorial Header ────────────────────────────────────── */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 sm:mb-16 animate-reveal">
-          <div className="max-w-2xl">
+          <div className="max-w-4xl">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-4 leading-none">
               UNIT | Centro | FITS | TIC
             </p>
-            <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.9] text-foreground mb-6">
+            <h1 className="text-3xl xs:text-5xl md:text-6xl 2xl:text-7xl font-black tracking-tighter leading-[0.9] text-foreground mb-6">
               Calendário
               <span className="gradient-text"> Geral </span>
             </h1>
-            <p className="text-lg font-medium text-muted-foreground/80 leading-relaxed max-w-lg">
+            <p className="text-xl font-medium text-muted-foreground/80 leading-relaxed max-w-2xl">
               Acompanhe todas as datas importantes do ano letivo
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="p-1 px-3 glass rounded-full flex items-center gap-3 shadow-xl shadow-primary/5 transition-all hover:shadow-primary/10">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Gerar PDF:</span>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="p-1 px-4 glass rounded-full flex items-center gap-3 shadow-xl shadow-primary/5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap hidden xs:inline">PDF:</span>
               <PdfCalendarGenerator events={events} categories={categories} />
             </div>
             <ViewSelector currentView={currentView} onViewChange={setCurrentView} />
@@ -156,12 +156,12 @@ const Index = () => {
 
         {/* ── Filtering Sidebar/Bar ────────────────────────────────── */}
         <div className="mb-10 animate-reveal" style={{ animationDelay: '100ms' }}>
-          <div className="flex flex-wrap items-center gap-3 p-2 bg-muted/30 backdrop-blur-md rounded-[2rem] border border-border/20 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3 p-2 bg-muted/40 backdrop-blur-lg rounded-[1.5rem] sm:rounded-[2.5rem] border border-border/20 shadow-sm w-full">
 
             {/* Search with custom wrapper */}
-            <div className="relative group flex-1 min-w-[200px] max-w-sm">
+            <div className="relative group w-full sm:flex-1 sm:max-w-sm">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-hover:text-primary" />
-              <SearchBar value={searchQuery} onChange={setSearchQuery} className="pl-12 w-full h-12 bg-background/50 border-none transition-all focus:bg-background hover:bg-background/80 rounded-2xl ring-0 focus-visible:ring-2 focus-visible:ring-primary/20" />
+              <SearchBar value={searchQuery} onChange={setSearchQuery} className="pl-12 w-full h-11 sm:h-12 bg-background/50 border-none rounded-xl sm:rounded-2xl" />
             </div>
 
             <div className="h-6 w-px bg-border/40 mx-1 hidden sm:block" />
@@ -287,8 +287,8 @@ const Index = () => {
         </div>
 
         {/* ── Calendar Section ────────────────────────────────────── */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 items-start">
-          <div className="xl:col-span-3 flex flex-col">
+        <div className="grid grid-cols-1 2xl:grid-cols-4 gap-4 sm:gap-8 items-start">
+          <div className="2xl:col-span-3 flex flex-col">
             <div className="flex-shrink-0">
               <CalendarHeader
                 currentDate={currentDate}
@@ -357,14 +357,14 @@ const Index = () => {
           </div>
 
           {/* ── Sidebar Event List ────────────────────────────────── */}
-          <div className="xl:col-span-1">
+          <div className="2xl:col-span-1">
             <EventList
               events={filteredEvents}
               categories={categories}
               selectedDate={selectedDate}
               activeCategories={activeCategories}
               onEventClick={setSelectedEvent}
-              className="xl:sticky xl:top-28 h-[calc(100vh-140px)] min-h-[600px] max-h-[800px]"
+              className="2xl:sticky 2xl:top-28 h-auto 2xl:h-[calc(100vh-140px)] min-h-[500px] 2xl:min-h-[600px] max-h-[800px]"
             />
           </div>
         </div>

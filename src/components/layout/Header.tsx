@@ -39,30 +39,30 @@ export function Header() {
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || 'U';
 
   return (
-    <header className="sticky top-0 z-[100] w-full border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
+    <header className="relative w-full border-b border-border/40 bg-background/80">
+      <div className="mx-auto px-4 sm:px-10 lg:px-16 w-full max-w-[1700px]">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo Section */}
-          <Link to="/" className="flex items-center gap-4 transition-opacity hover:opacity-90 active:scale-95 duration-200">
-            <div className="flex items-center gap-2 sm:gap-4 h-6 sm:h-9">
+          <Link to="/" className="flex items-center gap-2 transition-opacity hover:opacity-90 active:scale-95 duration-200 overflow-hidden">
+            <div className="flex items-center gap-0.5 xs:gap-2 sm:gap-4 h-[16px] xs:h-6 sm:h-9">
               <img
                 src="https://hs.unit.br/hs-fs/hubfs/marca-fits-branca.png"
                 alt="FITS"
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain flex-shrink-0"
                 style={{ filter: 'var(--logo-filter)' }}
               />
-              <div className="w-px h-6 bg-border/60" />
+              <div className="w-px h-3 sm:h-6 bg-border/60 flex-shrink-0" />
               <img
                 src="https://hs.unit.br/hs-fs/hubfs/unit-pe-marca-w.png"
                 alt="UNIT PE"
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain flex-shrink-0"
                 style={{ filter: 'var(--logo-filter)' }}
               />
-              <div className="w-px h-6 bg-border/60" />
+              <div className="w-px h-3 sm:h-6 bg-border/60 flex-shrink-0" />
               <img
                 src="https://hs.unit.br/hs-fs/hubfs/a-web-mkt/MARCA_UNIT.png"
                 alt="UNIT"
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain flex-shrink-0"
                 style={{ filter: 'var(--logo-filter)' }}
               />
             </div>
