@@ -287,7 +287,7 @@ const Index = () => {
         </div>
 
         {/* ── Calendar Section ────────────────────────────────────── */}
-        <div className="grid grid-cols-1 2xl:grid-cols-4 gap-4 sm:gap-8 items-start">
+        <div className="grid grid-cols-1 2xl:grid-cols-4 gap-4 sm:gap-8 items-end">
           <div className="2xl:col-span-3 flex flex-col">
             <div className="flex-shrink-0">
               <CalendarHeader
