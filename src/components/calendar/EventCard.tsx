@@ -1,9 +1,9 @@
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarDays, MapPin, Clock } from 'lucide-react';
 import { CalendarEvent, Category } from '@/types/calendar';
 import { cn } from '@/lib/utils';
-import { parseYmdToLocalDate } from '@/lib/date';
+import { parseYmdToLocalDate, formatTimeToCustom } from '@/lib/date';
 
 interface EventCardProps {
   event: CalendarEvent;
@@ -20,7 +20,8 @@ export function EventCard({ event, category, onClick, compact = false }: EventCa
         className={cn(
           "w-full text-left p-3 rounded-xl transition-all duration-200",
           "hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 active:scale-[0.99]",
-          "border border-border/30 bg-card group"
+          "border border-border/30 bg-card group",
+          isToday(parseYmdToLocalDate(event.date)) && "pulse-today"
         )}
       >
         <div className="flex items-center gap-3">
@@ -34,6 +35,9 @@ export function EventCard({ event, category, onClick, compact = false }: EventCa
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {format(parseYmdToLocalDate(event.date), "d 'de' MMM", { locale: ptBR })}
+              {!event.allDay && event.startTime && (
+                <span className="text-primary/70 font-medium"> · {formatTimeToCustom(event.startTime)}{event.endTime && ` às ${formatTimeToCustom(event.endTime)}`}</span>
+              )}
               {event.macroName && (
                 <span className="text-muted-foreground/60"> · {event.macroName}</span>
               )}
@@ -50,7 +54,8 @@ export function EventCard({ event, category, onClick, compact = false }: EventCa
       className={cn(
         "w-full text-left p-4 rounded-2xl transition-all duration-200",
         "hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 active:scale-[0.99]",
-        "border border-border/30 bg-card group"
+        "border border-border/30 bg-card group",
+        isToday(parseYmdToLocalDate(event.date)) && "pulse-today"
       )}
     >
       <div className="flex items-start gap-3">
@@ -95,10 +100,10 @@ export function EventCard({ event, category, onClick, compact = false }: EventCa
                 <span>{[event.macroName, event.microName].filter(Boolean).join(' · ')}</span>
               </div>
             )}
-            {!event.allDay && (
-              <div className="flex items-center gap-1">
+            {!event.allDay && event.startTime && (
+              <div className="flex items-center gap-1 text-primary font-medium">
                 <Clock className="w-3 h-3" />
-                <span>Horário específico</span>
+                <span>{formatTimeToCustom(event.startTime)}{event.endTime && ` às ${formatTimeToCustom(event.endTime)}`}</span>
               </div>
             )}
           </div>

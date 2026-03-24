@@ -86,6 +86,25 @@ export function EventForm({ event, categories, onSubmit, onCancel, isLoading }: 
     return checkLocationAvailability(microId, dateStr, endDateStr, event?.id);
   }, [microId, date, endDate, hasEndDate, event?.id, checkLocationAvailability]);
 
+  const handleTimeChange = (value: string, setter: (val: string) => void) => {
+    // Remove everything except numbers and 'h'
+    let cleaned = value.replace(/[^0-9h]/g, '');
+    
+    // If user typed ':' change to 'h'
+    if (value.includes(':')) {
+      cleaned = value.replace(':', 'h');
+    }
+
+    // Auto format 00h00
+    if (cleaned.length === 2 && !cleaned.includes('h')) {
+      cleaned = cleaned + 'h';
+    } else if (cleaned.length > 5) {
+      cleaned = cleaned.slice(0, 5);
+    }
+    
+    setter(cleaned);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !date || !categoryId) return;
@@ -94,13 +113,16 @@ export function EventForm({ event, categories, onSubmit, onCancel, isLoading }: 
       return; // Prevent submission with conflicts
     }
 
+    // Normalize time back to HH:mm for the database if it has 'h'
+    const normalizeTime = (t: string) => t.includes('h') ? t.replace('h', ':') : t;
+
     onSubmit({
       title,
       description,
       date: formatDateString(date),
       endDate: hasEndDate && endDate ? formatDateString(endDate) : undefined,
-      startTime: allDay ? null : (startTime || null),
-      endTime: allDay ? null : (endTime || null),
+      startTime: allDay ? null : (normalizeTime(startTime) || null),
+      endTime: allDay ? null : (normalizeTime(endTime) || null),
       categoryId,
       macroId: macroId || null,
       microId: microId || null,
@@ -229,11 +251,25 @@ export function EventForm({ event, categories, onSubmit, onCancel, isLoading }: 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="startTime">Hora de Início</Label>
-            <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-11 rounded-xl" />
+            <Input 
+              id="startTime" 
+              type="text" 
+              placeholder="00h00"
+              value={startTime.replace(':', 'h')} 
+              onChange={(e) => handleTimeChange(e.target.value, setStartTime)} 
+              className="h-11 rounded-xl" 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="endTime">Hora de Término</Label>
-            <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-11 rounded-xl" />
+            <Input 
+              id="endTime" 
+              type="text" 
+              placeholder="00h00"
+              value={endTime.replace(':', 'h')} 
+              onChange={(e) => handleTimeChange(e.target.value, setEndTime)} 
+              className="h-11 rounded-xl" 
+            />
           </div>
         </div>
       )}
