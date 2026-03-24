@@ -106,12 +106,12 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-full transition-colors hover:bg-muted"
+              className="w-10 h-10 rounded-full border border-border/20 transition-all hover:bg-muted text-foreground"
             >
               {theme === 'dark' ? (
-                <Sun className="w-[1.2rem] h-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Sun className="w-5 h-5" />
               ) : (
-                <Moon className="w-[1.2rem] h-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />
               )}
               <span className="sr-only">Alternar tema</span>
             </Button>
