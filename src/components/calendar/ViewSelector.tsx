@@ -17,16 +17,16 @@ const views: { type: CalendarViewType; label: string; icon: React.ReactNode }[] 
 
 export function ViewSelector({ currentView, onViewChange }: ViewSelectorProps) {
   return (
-    <div className="inline-flex items-center rounded-full border border-border/40 bg-muted/40 p-0.5 gap-0.5">
+    <div className="inline-flex items-center rounded-3xl border border-border/20 bg-muted/40 backdrop-blur-md p-1 gap-1">
       {views.map(({ type, label, icon }) => (
         <button
           key={type}
           onClick={() => onViewChange(type)}
           className={cn(
-            "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+            "flex items-center gap-2 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300",
             currentView === type
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "text-muted-foreground hover:text-foreground hover:bg-background/80"
+              ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-105"
+              : "text-muted-foreground/60 hover:text-foreground hover:bg-background/80"
           )}
         >
           {icon}

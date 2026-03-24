@@ -4,15 +4,18 @@ import { CalendarEvent, Category } from '@/types/calendar';
 import { EventCard } from './EventCard';
 import { CalendarX, Sparkles } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+
 interface EventListProps {
   events: CalendarEvent[];
   categories: Category[];
   selectedDate: Date | null;
   activeCategories: string[];
   onEventClick?: (event: CalendarEvent) => void;
+  className?: string;
 }
 
-export function EventList({ events, categories, selectedDate, activeCategories, onEventClick }: EventListProps) {
+export function EventList({ events, categories, selectedDate, activeCategories, onEventClick, className }: EventListProps) {
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
   const formatDateString = (d: Date): string => {
@@ -42,36 +45,47 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
   );
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card p-5 shadow-[var(--shadow-card)] animate-fade-in">
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-3.5 h-3.5 text-primary/60" />
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-          {selectedDate 
-            ? `Eventos — ${format(selectedDate, "d 'de' MMMM", { locale: ptBR })}`
-            : 'Próximos Eventos'
-          }
-        </h3>
-        <span className="ml-auto text-[10px] font-bold text-muted-foreground/50 bg-muted/60 px-2 py-0.5 rounded-full">
+    <div className={cn(
+      "rounded-[2.5rem] border border-border/40 bg-card/40 backdrop-blur-md p-6 sm:p-8 shadow-xl animate-reveal flex flex-col",
+      className
+    )} style={{ animationDelay: '200ms' }}>
+      <div className="flex items-center gap-4 mb-6 flex-shrink-0">
+        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+          <Sparkles className="w-5 h-5" />
+        </div>
+        <div className="flex flex-col">
+          <h3 className="text-xl font-black tracking-tight text-foreground leading-none mb-1">
+            {selectedDate 
+              ? `${format(selectedDate, "d 'de' MMMM", { locale: ptBR })}`
+              : 'Próximas Datas'
+            }
+          </h3>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+            {selectedDate ? 'Eventos selecionados' : 'Destaques acadêmicos'}
+          </p>
+        </div>
+        <span className="ml-auto text-[11px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full ring-1 ring-primary/20">
           {sortedEvents.length}
         </span>
       </div>
 
       {sortedEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-3">
-            <CalendarX className="w-7 h-7 text-muted-foreground/30" />
+        <div className="flex flex-col items-center justify-center py-16 text-center opacity-40 flex-1">
+          <div className="w-16 h-16 rounded-3xl bg-muted/50 flex items-center justify-center mb-4 transition-all hover:scale-110">
+            <CalendarX className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-sm font-medium text-muted-foreground/60">
-            {selectedDate ? 'Nenhum evento nesta data' : 'Nenhum evento encontrado'}
+          <h4 className="text-lg font-bold text-muted-foreground mb-1">Vazio por aqui</h4>
+          <p className="text-sm font-medium text-muted-foreground/60 max-w-[240px]">
+            {selectedDate ? 'Não encontramos eventos para esta data' : 'Sua agenda está livre por enquanto'}
           </p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+        <div className="space-y-3 overflow-y-auto pr-2 hide-scrollbar flex-1">
           {sortedEvents.map((event, i) => (
             <div
               key={event.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}
+              className="animate-reveal"
+              style={{ animationDelay: `${300 + (i * 100)}ms` }}
             >
               <EventCard
                 event={event}
@@ -81,6 +95,12 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
               />
             </div>
           ))}
+          
+          <div className="pt-4 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
+              Fim dos resultados recentes
+            </p>
+          </div>
         </div>
       )}
     </div>

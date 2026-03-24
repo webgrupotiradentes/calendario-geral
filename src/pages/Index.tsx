@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, addYears, subYears } from 'date-fns';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Filter, Search } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
@@ -118,254 +118,255 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-20 flex flex-col items-center justify-center">
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-          <p className="text-muted-foreground animate-pulse">Carregando calendário...</p>
+        <main className="container mx-auto px-4 py-32 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 border-[6px] border-primary/20 border-t-primary rounded-3xl animate-spin mb-6" />
+          <h2 className="text-xl font-black uppercase tracking-widest text-muted-foreground/60 animate-pulse">Sincronizando</h2>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative selection:bg-primary selection:text-primary-foreground">
       <Header />
 
-      <main className="container mx-auto px-4 py-6 lg:py-8">
-        {/* ── Page title row ──────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 animate-fade-in">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              <span className="gradient-text">Calendário Acadêmico</span>
+      <main className="container mx-auto px-4 py-8 relative">
+        {/* ── Editorial Header ────────────────────────────────────── */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 sm:mb-16 animate-reveal">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-4 leading-none">
+              UNIT | Centro | FITS | TIC
+            </p>
+            <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[0.9] text-foreground mb-6">
+              Calendário
+              <span className="gradient-text"> Geral </span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-1.5">
+            <p className="text-lg font-medium text-muted-foreground/80 leading-relaxed max-w-lg">
               Acompanhe todas as datas importantes do ano letivo
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <PdfCalendarGenerator events={events} categories={categories} />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="p-1 px-3 glass rounded-full flex items-center gap-3 shadow-xl shadow-primary/5 transition-all hover:shadow-primary/10">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">Gerar PDF:</span>
+              <PdfCalendarGenerator events={events} categories={categories} />
+            </div>
             <ViewSelector currentView={currentView} onViewChange={setCurrentView} />
           </div>
         </div>
 
-        {/* ── Filter bar ─────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-2 mb-5 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        {/* ── Filtering Sidebar/Bar ────────────────────────────────── */}
+        <div className="mb-10 animate-reveal" style={{ animationDelay: '100ms' }}>
+          <div className="flex flex-wrap items-center gap-3 p-2 bg-muted/30 backdrop-blur-md rounded-[2rem] border border-border/20 shadow-sm">
 
-          {/* Search */}
-          <SearchBar value={searchQuery} onChange={setSearchQuery} className="w-48" />
+            {/* Search with custom wrapper */}
+            <div className="relative group flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-hover:text-primary" />
+              <SearchBar value={searchQuery} onChange={setSearchQuery} className="pl-12 w-full h-12 bg-background/50 border-none transition-all focus:bg-background hover:bg-background/80 rounded-2xl ring-0 focus-visible:ring-2 focus-visible:ring-primary/20" />
+            </div>
 
-          {/* Categories dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  'flex items-center h-9 gap-1.5 px-3.5 rounded-full text-sm font-medium border transition-all',
-                  activeCategories.length > 0
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-muted/60 text-foreground border-border hover:bg-muted'
-                )}
-              >
-                Categorias
-                {activeCategories.length > 0 && (
-                  <span className="ml-1 bg-white/30 text-white rounded-full text-xs px-1.5 py-0.5 leading-none">
-                    {activeCategories.length}
-                  </span>
-                )}
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-52 bg-popover shadow-lg border-border z-50">
-              {categories.map(cat => (
-                <DropdownMenuCheckboxItem
-                  key={cat.id}
-                  checked={activeCategories.includes(cat.id)}
-                  onCheckedChange={() => handleToggleCategory(cat.id)}
-                  className="gap-2"
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"
-                    style={{ backgroundColor: `hsl(${cat.color})` }}
-                  />
-                  {cat.name}
-                </DropdownMenuCheckboxItem>
-              ))}
-              {activeCategories.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setActiveCategories([])} className="text-destructive text-xs">
-                    Limpar seleção
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <div className="h-6 w-px bg-border/40 mx-1 hidden sm:block" />
 
-          {/* IES (Macros) - Toggle Group UI */}
-          <div className="flex bg-muted/30 p-1 rounded-full border border-border/30 gap-1 max-w-full overflow-x-auto hide-scrollbar">
-            {macros.map(mac => {
-              const isActive = activeMacros.includes(mac.id);
-              return (
-                <button
-                  key={mac.id}
-                  onClick={() => handleToggleMacro(mac.id)}
-                  className={cn(
-                    'relative h-8 px-4 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
-                  )}
-                >
-                  {mac.name}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Locations dropdown */}
-          {micros.length > 0 && (
+            {/* Categories */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    'flex items-center h-9 gap-1.5 px-3.5 rounded-full text-sm font-medium border transition-all',
-                    activeMicro
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-muted/60 text-foreground border-border hover:bg-muted'
+                    'flex items-center h-12 gap-3 px-6 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all duration-300',
+                    activeCategories.length > 0
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20'
+                      : 'bg-background/50 text-muted-foreground border-border/40 hover:bg-background'
                   )}
                 >
-                  Local
-                  {activeMicro && (
-                    <span className="ml-1 text-xs opacity-80 max-w-[80px] truncate">
-                      · {micros.find(m => m.id === activeMicro)?.name}
+                  <Filter className="w-4 h-4" />
+                  Categorias
+                  {activeCategories.length > 0 && (
+                    <span className="ml-1 bg-white/20 rounded-lg px-2 py-1 leading-none">
+                      {activeCategories.length}
                     </span>
                   )}
-                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52 bg-popover shadow-lg border-border z-50">
-                {activeMicro && (
-                  <>
-                    <DropdownMenuItem onClick={() => setActiveMicro(undefined)} className="text-destructive text-xs">
-                      Limpar local
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                {availableMicros.map(micro => (
+              <DropdownMenuContent align="start" className="w-64 glass-card p-2 mt-2">
+                <div className="px-2 py-2 mb-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Filtrar por Categoria</p>
+                </div>
+                {categories.map(cat => (
                   <DropdownMenuCheckboxItem
-                    key={micro.id}
-                    checked={activeMicro === micro.id}
-                    onCheckedChange={() => setActiveMicro(activeMicro === micro.id ? undefined : micro.id)}
+                    key={cat.id}
+                    checked={activeCategories.includes(cat.id)}
+                    onCheckedChange={() => handleToggleCategory(cat.id)}
+                    className="gap-3 rounded-lg py-3 focus:bg-primary focus:text-primary-foreground"
                   >
-                    {micro.name}
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: `hsl(${cat.color})`, boxShadow: `0 0 10px hsl(${cat.color}/0.3)` }}
+                    />
+                    <span className="font-bold">{cat.name}</span>
                   </DropdownMenuCheckboxItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
 
-          {/* Active filter pills */}
-          {activeCategories.map(catId => {
-            const cat = categories.find(c => c.id === catId);
-            if (!cat) return null;
-            return (
-              <span
-                key={catId}
-                className="flex items-center gap-1 h-7 px-2.5 rounded-full text-xs font-medium text-white"
-                style={{ backgroundColor: `hsl(${cat.color})` }}
+            {/* IES Selectors */}
+            <div className="flex bg-background/40 p-1 rounded-2xl border border-border/30 gap-1 overflow-x-auto hide-scrollbar max-w-full">
+              {macros.map(mac => {
+                const isActive = activeMacros.includes(mac.id);
+                return (
+                  <button
+                    key={mac.id}
+                    onClick={() => handleToggleMacro(mac.id)}
+                    className={cn(
+                      'relative h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] whitespace-nowrap transition-all duration-500',
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.05]'
+                        : 'text-muted-foreground/60 hover:text-foreground hover:bg-background/80'
+                    )}
+                  >
+                    {mac.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Locations dropdown */}
+            {micros.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      'flex items-center h-12 gap-3 px-6 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all duration-300',
+                      activeMicro
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20'
+                        : 'bg-background/50 text-muted-foreground border-border/40 hover:bg-background'
+                    )}
+                  >
+                    Local
+                    {activeMicro && (
+                      <span className="ml-1 text-[10px] bg-white/20 rounded-lg px-2 py-1 leading-none max-w-[100px] truncate">
+                        {micros.find(m => m.id === activeMicro)?.name}
+                      </span>
+                    )}
+                    <ChevronDown className="w-4 h-4 opacity-60" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 glass-card p-2 mt-2">
+                  <div className="px-2 py-2 mb-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Selecionar Unidade/Local</p>
+                  </div>
+                  {activeMicro && (
+                    <>
+                      <DropdownMenuItem onClick={() => setActiveMicro(undefined)} className="rounded-lg text-destructive font-bold text-xs">
+                        Limpar seleção
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="opacity-40" />
+                    </>
+                  )}
+                  {availableMicros.map(micro => (
+                    <DropdownMenuCheckboxItem
+                      key={micro.id}
+                      checked={activeMicro === micro.id}
+                      onCheckedChange={() => setActiveMicro(activeMicro === micro.id ? undefined : micro.id)}
+                      className="rounded-lg py-3 focus:bg-primary focus:text-primary-foreground"
+                    >
+                      <span className="font-bold">{micro.name}</span>
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/10 transition-all duration-300"
               >
-                {cat.name}
-                <button onClick={() => handleToggleCategory(catId)} className="hover:opacity-70 transition-opacity">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            );
-          })}
-
-          {/* Active filter pills for Macros removed since they are visible as toggle buttons */}
-
-          {hasActiveFilters && (
-            <button
-              onClick={clearAllFilters}
-              className="h-7 px-3 rounded-full text-xs text-muted-foreground hover:text-destructive border border-border hover:border-destructive/40 transition-colors"
-            >
-              Limpar tudo
-            </button>
-          )}
-
-          {/* Event count */}
-          <span className="ml-auto text-xs text-muted-foreground">
-            {filteredEvents.length} evento{filteredEvents.length !== 1 && 's'}
-          </span>
+                Reset
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* ── Full-width calendar ─────────────────────────────────── */}
-        <div className="space-y-3">
-          <CalendarHeader
-            currentDate={currentDate}
-            onPreviousMonth={handlePrevious}
-            onNextMonth={handleNext}
-            onToday={handleToday}
-            onClear={handleClearCalendar}
-            viewType={currentView}
-          />
+        {/* ── Calendar Section ────────────────────────────────────── */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 items-start">
+          <div className="xl:col-span-3 flex flex-col">
+            <div className="flex-shrink-0">
+              <CalendarHeader
+                currentDate={currentDate}
+                onPreviousMonth={handlePrevious}
+                onNextMonth={handleNext}
+                onToday={handleToday}
+                onClear={handleClearCalendar}
+                viewType={currentView}
+              />
+            </div>
 
-          {currentView === 'month' && (
-            <CalendarGrid
-              currentDate={currentDate}
+            <div className="relative group flex-1">
+              {/* Decorators */}
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-all duration-700" />
+              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-500/10 transition-all duration-700" />
+
+              <div className="relative z-10 h-full">
+                {currentView === 'month' && (
+                  <CalendarGrid
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    categories={categories}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    onEventClick={setSelectedEvent}
+                    activeCategories={activeCategories}
+                  />
+                )}
+
+                {currentView === 'week' && (
+                  <WeekView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    categories={categories}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    activeCategories={activeCategories}
+                    onEventClick={setSelectedEvent}
+                  />
+                )}
+
+                {currentView === 'day' && (
+                  <DayView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    categories={categories}
+                    selectedDate={selectedDate}
+                    onSelectDate={handleSelectDate}
+                    activeCategories={activeCategories}
+                    onEventClick={setSelectedEvent}
+                  />
+                )}
+
+                {currentView === 'year' && (
+                  <YearView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onDateClick={(date) => {
+                      handleSelectDate(date);
+                      setCurrentView('day');
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Sidebar Event List ────────────────────────────────── */}
+          <div className="xl:col-span-1">
+            <EventList
               events={filteredEvents}
               categories={categories}
               selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              onEventClick={setSelectedEvent}
-              activeCategories={activeCategories}
-            />
-          )}
-
-          {currentView === 'week' && (
-            <WeekView
-              currentDate={currentDate}
-              events={filteredEvents}
-              categories={categories}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
               activeCategories={activeCategories}
               onEventClick={setSelectedEvent}
+              className="xl:sticky xl:top-28 h-[calc(100vh-140px)] min-h-[600px] max-h-[800px]"
             />
-          )}
-
-          {currentView === 'day' && (
-            <DayView
-              currentDate={currentDate}
-              events={filteredEvents}
-              categories={categories}
-              selectedDate={selectedDate}
-              onSelectDate={handleSelectDate}
-              activeCategories={activeCategories}
-              onEventClick={setSelectedEvent}
-            />
-          )}
-
-          {currentView === 'year' && (
-            <YearView
-              currentDate={currentDate}
-              events={filteredEvents}
-              onDateClick={(date) => {
-                handleSelectDate(date);
-                setCurrentView('day');
-              }}
-            />
-          )}
-        </div>
-
-        {/* ── Event list below calendar ───────────────────────────── */}
-        <div className="mt-6">
-          <EventList
-            events={filteredEvents}
-            categories={categories}
-            selectedDate={selectedDate}
-            activeCategories={activeCategories}
-            onEventClick={setSelectedEvent}
-          />
+          </div>
         </div>
       </main>
 
@@ -375,6 +376,8 @@ const Index = () => {
         isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
       />
+
+      {/* Scroll to top decorator or other details could go here */}
     </div>
   );
 };

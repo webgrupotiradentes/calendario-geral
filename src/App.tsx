@@ -20,6 +20,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-center" />
         <BrowserRouter>
+          <div className="noise-bg" aria-hidden="true" />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
