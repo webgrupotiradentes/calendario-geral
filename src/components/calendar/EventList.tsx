@@ -27,16 +27,16 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
 
   const filteredEvents = events.filter(event => {
     const matchesCat = activeCategories.length === 0 || activeCategories.includes(event.categoryId);
-    
+
     if (selectedDate) {
       const sel = formatDateString(selectedDate);
       return matchesCat && sel >= event.date && sel <= (event.endDate || event.date);
     }
-    
+
     // When showing "Próximos Eventos", only show from today onwards
     const today = formatDateString(new Date());
     const isUpcoming = (event.endDate || event.date) >= today;
-    
+
     return matchesCat && isUpcoming;
   });
 
@@ -55,13 +55,13 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
         </div>
         <div className="flex flex-col">
           <h3 className="text-xl font-black tracking-tight text-foreground leading-none mb-1">
-            {selectedDate 
+            {selectedDate
               ? `${format(selectedDate, "d 'de' MMMM", { locale: ptBR })}`
               : 'Próximas Datas'
             }
           </h3>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-            {selectedDate ? 'Eventos selecionados' : 'Destaques acadêmicos'}
+            {selectedDate ? 'Eventos selecionados' : 'Destaques'}
           </p>
         </div>
         <span className="ml-auto text-[11px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full ring-1 ring-primary/20">
@@ -95,7 +95,7 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
               />
             </div>
           ))}
-          
+
           <div className="pt-4 text-center">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">
               Fim dos resultados recentes
