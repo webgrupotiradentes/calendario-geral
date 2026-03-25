@@ -12,6 +12,8 @@ import { WeekView } from '@/components/calendar/WeekView';
 import { DayView } from '@/components/calendar/DayView';
 import { YearView } from '@/components/calendar/YearView';
 import { PdfCalendarGenerator } from '@/components/calendar/PdfCalendarGenerator';
+import { SEO } from '@/components/layout/SEO';
+import { Footer } from '@/components/layout/Footer';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useCategories } from '@/hooks/useCategories';
 import { useMacros } from '@/hooks/useMacros';
@@ -128,6 +130,31 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative selection:bg-primary selection:text-primary-foreground">
+      <SEO 
+        title="Calendário Acadêmico"
+        description="Confira todas as datas importantes do calendário acadêmico da Universidade Tiradentes (UNIT, FITS, UNIT PE). Acompanhe provas, feriados e eventos acadêmicos."
+        keywords="UNIT, FITS, UNIT PE, calendário acadêmico, calendário unit, datas provas, feriados unit"
+        schemaMarkup={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "name": "Universidade Tiradentes",
+              "url": "https://www.unit.br",
+              "logo": "https://www.unit.br/hubfs/Unit%20Universidade%20Tiradentes%20June2017/images/unit-logo.png"
+            },
+            {
+              "@type": "BreadcrumbList",
+              "itemListElement": [{
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Calendário Geral",
+                "item": "https://calendario.unit.br"
+              }]
+            }
+          ]
+        }}
+      />
       <Header />
 
       <main className="mx-auto px-4 sm:px-10 lg:px-16 py-8 relative w-full max-w-[1700px]">
@@ -377,7 +404,7 @@ const Index = () => {
         onClose={() => setSelectedEvent(null)}
       />
 
-      {/* Scroll to top decorator or other details could go here */}
+      <Footer />
     </div>
   );
 };

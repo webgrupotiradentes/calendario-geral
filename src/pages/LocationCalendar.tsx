@@ -9,6 +9,7 @@ import { EventList } from '@/components/calendar/EventList';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useCategories } from '@/hooks/useCategories';
+import { SEO } from '@/components/layout/SEO';
 import { CalendarEvent } from '@/types/calendar';
 import { Button } from '@/components/ui/button';
 
@@ -32,6 +33,28 @@ const LocationCalendar = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title={`Calendário - ${decodedLocation}`}
+        description={`Datas e eventos importantes para o local ${decodedLocation} no calendário acadêmico da Universidade Tiradentes.`}
+        schemaMarkup={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://calendario.unit.br"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": decodedLocation,
+              "item": `https://calendario.unit.br/local/${location}`
+            }
+          ]
+        }}
+      />
       <Header />
       <main className="container mx-auto px-4 py-6 lg:py-8">
         <div className="flex items-center gap-3 mb-6">

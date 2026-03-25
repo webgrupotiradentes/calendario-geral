@@ -45,16 +45,23 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
   );
 
   return (
-    <div className={cn(
-      "rounded-[2.5rem] border border-border/40 bg-card/40 backdrop-blur-md p-6 sm:p-8 shadow-xl animate-reveal flex flex-col",
-      className
-    )} style={{ animationDelay: '200ms' }}>
+    <section 
+      aria-labelledby="event-list-title"
+      className={cn(
+        "rounded-[2.5rem] border border-border/40 bg-card/40 backdrop-blur-md p-6 sm:p-8 shadow-xl animate-reveal flex flex-col",
+        className
+      )} 
+      style={{ animationDelay: '200ms' }}
+    >
       <div className="flex items-center gap-4 mb-6 flex-shrink-0">
         <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
           <Sparkles className="w-5 h-5" />
         </div>
         <div className="flex flex-col">
-          <h3 className="text-xl font-black tracking-tight text-foreground leading-none mb-1">
+          <h3 
+            id="event-list-title"
+            className="text-xl font-black tracking-tight text-foreground leading-none mb-1"
+          >
             {selectedDate
               ? `${format(selectedDate, "d 'de' MMMM", { locale: ptBR })}`
               : 'Próximas Datas'
@@ -103,6 +110,6 @@ export function EventList({ events, categories, selectedDate, activeCategories, 
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
