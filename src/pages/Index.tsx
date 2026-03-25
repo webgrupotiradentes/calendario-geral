@@ -13,7 +13,6 @@ import { DayView } from '@/components/calendar/DayView';
 import { YearView } from '@/components/calendar/YearView';
 import { PdfCalendarGenerator } from '@/components/calendar/PdfCalendarGenerator';
 import { SEO } from '@/components/layout/SEO';
-import { Footer } from '@/components/layout/Footer';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useCategories } from '@/hooks/useCategories';
 import { useMacros } from '@/hooks/useMacros';
@@ -130,7 +129,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative selection:bg-primary selection:text-primary-foreground">
-      <SEO 
+      <SEO
         title="Calendário Acadêmico"
         description="Confira todas as datas importantes do calendário acadêmico da Universidade Tiradentes (UNIT, FITS, UNIT PE). Acompanhe provas, feriados e eventos acadêmicos."
         keywords="UNIT, FITS, UNIT PE, calendário acadêmico, calendário unit, datas provas, feriados unit"
@@ -149,7 +148,7 @@ const Index = () => {
                 "@type": "ListItem",
                 "position": 1,
                 "name": "Calendário Geral",
-                "item": "https://calendario.unit.br"
+                "item": "https://www.unit.br/calendario"
               }]
             }
           ]
@@ -404,7 +403,6 @@ const Index = () => {
         onClose={() => setSelectedEvent(null)}
       />
 
-      <Footer />
     </div>
   );
 };
