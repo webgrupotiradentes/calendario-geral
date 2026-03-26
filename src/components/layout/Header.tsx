@@ -1,10 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Settings, Menu, X, LogIn, LogOut, Sun, Moon, LayoutGrid, Key, User as UserIcon } from 'lucide-react';
+import { 
+  Settings, Menu, X, LogIn, LogOut, Sun, Moon, 
+  LayoutGrid, Key, User as UserIcon, Bell, BellOff 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { useDesktopNotifications } from '@/hooks/useDesktopNotifications';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -21,8 +25,28 @@ export function Header() {
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { permission, requestPermission } = useDesktopNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  const handleRequestPermission = useCallback(async () => {
+    if (!('Notification' in window)) {
+      toast.error('Seu navegador não suporta notificações desktop');
+      return;
+    }
+
+    if (permission === 'denied') {
+      toast.error('As notificações estão bloqueadas nas configurações do seu navegador');
+      return;
+    }
+
+    const granted = await requestPermission();
+    if (granted) {
+      toast.success('Notificações ativadas com sucesso!');
+    } else {
+      toast.error('As notificações não foram ativadas');
+    }
+  }, [permission, requestPermission]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -114,6 +138,27 @@ export function Header() {
                 <Moon className="w-5 h-5 text-muted-foreground hover:text-foreground" />
               )}
               <span className="sr-only">Alternar tema</span>
+            </Button>
+
+            {/* Notifications Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRequestPermission}
+              className={cn(
+                "w-10 h-10 rounded-full border border-border/20 transition-all hover:bg-muted",
+                permission === 'granted' ? "text-primary" : "text-muted-foreground"
+              )}
+              title={permission === 'granted' ? "Notificações ativadas" : "Ativar notificações desktop"}
+            >
+              {permission === 'granted' ? (
+                <Bell className="w-5 h-5" />
+              ) : permission === 'denied' ? (
+                <BellOff className="w-5 h-5 opacity-40" />
+              ) : (
+                <Bell className="w-5 h-5 opacity-40 animate-pulse" />
+              )}
+              <span className="sr-only">Notificações</span>
             </Button>
 
             {/* Auth Section */}

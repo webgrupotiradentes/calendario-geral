@@ -14,11 +14,13 @@ import { YearView } from '@/components/calendar/YearView';
 import { PdfCalendarGenerator } from '@/components/calendar/PdfCalendarGenerator';
 import { SEO } from '@/components/layout/SEO';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useDesktopNotifications } from '@/hooks/useDesktopNotifications';
 import { useCategories } from '@/hooks/useCategories';
 import { useMacros } from '@/hooks/useMacros';
 import { useMicros } from '@/hooks/useMicros';
 import { CalendarEvent } from '@/types/calendar';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +44,27 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [currentView, setCurrentView] = useState<CalendarViewType>('month');
+
+  const { notifyEvents } = useDesktopNotifications();
+
+  useEffect(() => {
+    if (!eventsLoading && events.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const todayEvents = events.filter(e => {
+        const start = e.date;
+        const end = e.endDate || e.date;
+        return today >= start && today <= end;
+      });
+
+      if (todayEvents.length > 0) {
+        const lastNotified = localStorage.getItem('last_notified_date');
+        if (lastNotified !== today) {
+          notifyEvents(todayEvents);
+          localStorage.setItem('last_notified_date', today);
+        }
+      }
+    }
+  }, [eventsLoading, events, notifyEvents]);
 
   const isLoading = eventsLoading || categoriesLoading || macrosLoading || microsLoading;
 
