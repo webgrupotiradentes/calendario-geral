@@ -48,22 +48,36 @@ const Index = () => {
   const { notifyEvents } = useDesktopNotifications();
 
   useEffect(() => {
-    if (!eventsLoading && events.length > 0) {
-      const today = new Date().toISOString().split('T')[0];
-      const todayEvents = events.filter(e => {
-        const start = e.date;
-        const end = e.endDate || e.date;
-        return today >= start && today <= end;
-      });
+    const triggerNotifications = async () => {
+      if (!eventsLoading && events.length > 0) {
+        const today = new Date().toLocaleDateString('en-CA');
+        const todayEvents = events.filter(e => {
+          const start = e.date;
+          const end = e.endDate || e.date;
+          const isToday = today >= start && today <= end;
+          return isToday;
+        });
 
-      if (todayEvents.length > 0) {
-        const lastNotified = localStorage.getItem('last_notified_date');
-        if (lastNotified !== today) {
-          notifyEvents(todayEvents);
-          localStorage.setItem('last_notified_date', today);
+        console.log(`[Notifications] Today: ${today}, Events found: ${todayEvents.length}`);
+
+        if (todayEvents.length > 0) {
+          const lastNotified = localStorage.getItem('last_notified_date');
+          console.log(`[Notifications] Last notified: ${lastNotified}`);
+          
+          if (lastNotified !== today) {
+            console.log('[Notifications] Sending notification...');
+            const success = await notifyEvents(todayEvents);
+            if (success) {
+              console.log('[Notifications] Notification sent successfully');
+              localStorage.setItem('last_notified_date', today);
+            } else {
+              console.warn('[Notifications] Notification failed to send (permission denied or blocked)');
+            }
+          }
         }
       }
-    }
+    };
+    triggerNotifications();
   }, [eventsLoading, events, notifyEvents]);
 
   const isLoading = eventsLoading || categoriesLoading || macrosLoading || microsLoading;

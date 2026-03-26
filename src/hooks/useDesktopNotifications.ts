@@ -37,14 +37,14 @@ export function useDesktopNotifications() {
   }, []);
 
   const notifyEvents = useCallback(async (events: CalendarEvent[]) => {
-    if (events.length === 0) return;
+    if (events.length === 0) return false;
 
     if (Notification.permission === 'default') {
       const hasPermission = await requestPermission();
-      if (!hasPermission) return;
+      if (!hasPermission) return false;
     }
 
-    if (Notification.permission !== 'granted') return;
+    if (Notification.permission !== 'granted') return false;
 
     if (events.length === 1) {
       const event = events[0];
@@ -60,6 +60,7 @@ export function useDesktopNotifications() {
         tag: 'events-today'
       });
     }
+    return true;
   }, [requestPermission, sendNotification]);
 
   return { permission, requestPermission, sendNotification, notifyEvents };
